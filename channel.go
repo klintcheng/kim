@@ -2,13 +2,14 @@ package kim
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/klintcheng/kim/logger"
 )
 
-// Channel a websocket implement of channel
+// ChannelImpl is a websocket implement of channel
 type ChannelImpl struct {
 	sync.Mutex
 	id string
@@ -20,10 +21,10 @@ type ChannelImpl struct {
 	closed    *Event
 }
 
-// NewChannel 创建一个新的节点,如果 conf 为空，会使用一个默认的配置
+// NewChannel NewChannel
 func NewChannel(id string, conn Conn) Channel {
 	log := logger.WithFields(logger.Fields{
-		"module": "tcp_channel",
+		"module": "channel",
 		"id":     id,
 	})
 	ch := &ChannelImpl{
@@ -37,9 +38,8 @@ func NewChannel(id string, conn Conn) Channel {
 	go func() {
 		err := ch.writeloop()
 		if err != nil {
-			log.Warn(err)
+			log.Info(err)
 		}
-		ch.Conn.Close()
 	}()
 	return ch
 }
@@ -76,7 +76,7 @@ func (ch *ChannelImpl) ID() string { return ch.id }
 // Send 异步写数据
 func (ch *ChannelImpl) Push(payload []byte) error {
 	if ch.closed.HasFired() {
-		return errors.New("channel has closed")
+		return fmt.Errorf("channel %s has closed", ch.id)
 	}
 	// 异步写
 	ch.writechan <- payload
@@ -85,8 +85,6 @@ func (ch *ChannelImpl) Push(payload []byte) error {
 
 // overwrite Conn
 func (ch *ChannelImpl) WriteFrame(code OpCode, payload []byte) error {
-	ch.Lock()
-	defer ch.Unlock()
 	_ = ch.Conn.SetWriteDeadline(time.Now().Add(ch.writeWait))
 	return ch.Conn.WriteFrame(code, payload)
 }
@@ -107,6 +105,7 @@ func (ch *ChannelImpl) SetWriteWait(writeWait time.Duration) {
 	}
 	ch.writeWait = writeWait
 }
+
 func (ch *ChannelImpl) SetReadWait(readwait time.Duration) {
 	if readwait == 0 {
 		return
@@ -115,6 +114,13 @@ func (ch *ChannelImpl) SetReadWait(readwait time.Duration) {
 }
 
 func (ch *ChannelImpl) Readloop(lst MessageListener) error {
+	ch.Lock()
+	defer ch.Unlock()
+	log := logger.WithFields(logger.Fields{
+		"struct": "ChannelImpl",
+		"func":   "Readloop",
+		"id":     ch.id,
+	})
 	for {
 		_ = ch.SetReadDeadline(time.Now().Add(ch.readwait))
 
@@ -126,6 +132,7 @@ func (ch *ChannelImpl) Readloop(lst MessageListener) error {
 			return errors.New("remote side close the channel")
 		}
 		if frame.GetOpCode() == OpPing {
+			log.Trace("recv a ping; resp with a pong")
 			_ = ch.WriteFrame(OpPong, nil)
 			continue
 		}
