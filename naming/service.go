@@ -2,24 +2,21 @@ package naming
 
 import (
 	"fmt"
+
+	"github.com/klintcheng/kim"
 )
 
+// "ID": "qa-dfirst-zfirst-tgateway-172.16.235.145-0-8000",
+// "Service": "tgateway",
+// "Tags": [
+// "ZONE:qa-dfirst-zfirst",
+// "TMC_REGION:SH",
+// "TMC_DOMAIN:g002-qa.tutormeetplus.com"
+// ],
+// "Address": "172.16.235.145",
+// "Port": 8000,
+
 //Service define a Service
-type ServiceRegistration interface {
-	ServiceID() string
-	ServiceName() string
-	//ip or doamin
-	PublicAddress() string
-	PublicPort() int
-	DialURL() string
-	GetProtocol() string
-	GetNamespace() string
-	GetTags() []string
-	GetMeta() map[string]string
-	// SetTags(tags []string)
-	// SetMeta(meta map[string]string)
-	String() string
-}
 
 // DefaultService Service Impl
 type DefaultService struct {
@@ -34,7 +31,7 @@ type DefaultService struct {
 }
 
 // NewEntry NewEntry
-func NewEntry(id, name, protocol string, address string, port int) ServiceRegistration {
+func NewEntry(id, name, protocol string, address string, port int) kim.ServiceRegistration {
 	return &DefaultService{
 		Id:       id,
 		Name:     name,
@@ -49,14 +46,16 @@ func (e *DefaultService) ServiceID() string {
 	return e.Id
 }
 
-// Namespace Namespace
-func (e *DefaultService) GetNamespace() string { return e.Namespace }
-
 // Name Name
 func (e *DefaultService) ServiceName() string { return e.Name }
 
+// Namespace Namespace
+func (e *DefaultService) GetNamespace() string { return e.Namespace }
+
 // Address Address
-func (e *DefaultService) PublicAddress() string { return e.Address }
+func (e *DefaultService) PublicAddress() string {
+	return e.Address
+}
 
 func (e *DefaultService) PublicPort() int { return e.Port }
 
@@ -75,16 +74,6 @@ func (e *DefaultService) GetTags() []string { return e.Tags }
 
 // Meta Meta
 func (e *DefaultService) GetMeta() map[string]string { return e.Meta }
-
-// // SetTags SetTags
-// func (e *DefaultService) SetTags(tags []string) {
-// 	e.tags = tags
-// }
-
-// // SetMeta SetMeta
-// func (e *DefaultService) SetMeta(meta map[string]string) {
-// 	e.meta = meta
-// }
 
 func (e *DefaultService) String() string {
 	return fmt.Sprintf("Id:%s,Name:%s,Address:%s,Port:%d,Ns:%s,Tags:%v,Meta:%v", e.Id, e.Name, e.Address, e.Port, e.Namespace, e.Tags, e.Meta)

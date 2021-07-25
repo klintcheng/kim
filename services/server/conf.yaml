@@ -1,0 +1,9 @@
+ServiceID: chat01
+Listen: ":8005"
+PublicAddress: "localhost"
+PublicPort: 8005
+Tags:
+  - server
+ConsulURL: localhost:8500
+RedisAddrs: localhost:6379
+RpcURL: http://localhost:8080

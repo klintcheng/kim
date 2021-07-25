@@ -14,7 +14,7 @@ import (
 
 // ClientOptions ClientOptions
 type ClientOptions struct {
-	Heartbeat time.Duration //登陆超时
+	Heartbeat time.Duration //登录超时
 	ReadWait  time.Duration //读超时
 	WriteWait time.Duration //写超时
 }
@@ -29,32 +29,29 @@ type Client struct {
 	conn    kim.Conn
 	state   int32
 	options ClientOptions
+	Meta    map[string]string
 }
 
 // NewClient NewClient
 func NewClient(id, name string, opts ClientOptions) kim.Client {
+	return NewClientWithProps(id, name, make(map[string]string), opts)
+}
+
+func NewClientWithProps(id, name string, meta map[string]string, opts ClientOptions) kim.Client {
 	if opts.WriteWait == 0 {
 		opts.WriteWait = kim.DefaultWriteWait
 	}
 	if opts.ReadWait == 0 {
 		opts.ReadWait = kim.DefaultReadWait
 	}
+
 	cli := &Client{
 		id:      id,
 		name:    name,
 		options: opts,
+		Meta:    meta,
 	}
 	return cli
-}
-
-// ID return id
-func (c *Client) ID() string {
-	return c.id
-}
-
-// Name Name
-func (c *Client) Name() string {
-	return c.name
 }
 
 // Connect to server
@@ -164,3 +161,14 @@ func (c *Client) ping() error {
 	}
 	return c.conn.WriteFrame(kim.OpPing, nil)
 }
+
+// ID return id
+func (c *Client) ServiceID() string {
+	return c.id
+}
+
+// Name Name
+func (c *Client) ServiceName() string {
+	return c.name
+}
+func (c *Client) GetMeta() map[string]string { return c.Meta }

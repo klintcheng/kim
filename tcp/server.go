@@ -2,7 +2,6 @@ package tcp
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"sync"
@@ -10,14 +9,13 @@ import (
 
 	"github.com/klintcheng/kim"
 	"github.com/klintcheng/kim/logger"
-	"github.com/klintcheng/kim/naming"
 
 	"github.com/segmentio/ksuid"
 )
 
 // ServerOptions ServerOptions
 type ServerOptions struct {
-	loginwait time.Duration //登陆超时
+	loginwait time.Duration //登录超时
 	readwait  time.Duration //读超时
 	writewait time.Duration //读超时
 }
@@ -25,7 +23,7 @@ type ServerOptions struct {
 // Server is a websocket implement of the Server
 type Server struct {
 	listen string
-	naming.ServiceRegistration
+	kim.ServiceRegistration
 	kim.ChannelMap
 	kim.Acceptor
 	kim.MessageListener
@@ -36,7 +34,7 @@ type Server struct {
 }
 
 // NewServer NewServer
-func NewServer(listen string, service naming.ServiceRegistration) kim.Server {
+func NewServer(listen string, service kim.ServiceRegistration) kim.Server {
 	return &Server{
 		listen:              listen,
 		ServiceRegistration: service,
@@ -150,7 +148,7 @@ func (s *Server) Shutdown(ctx context.Context) error {
 func (s *Server) Push(id string, data []byte) error {
 	ch, ok := s.ChannelMap.Get(id)
 	if !ok {
-		return errors.New("channel no found")
+		return fmt.Errorf("channel %s no found", id)
 	}
 	return ch.Push(data)
 }

@@ -1,0 +1,61 @@
+syntax = "proto3";
+package pkt;
+option go_package = "./pkt";
+
+// status is a uint16 value 
+enum Status {
+    Success = 0;
+    SessionNotFound = 10;
+    // client error 100-300
+    NoDestination = 100;
+    InvalidPacketBody = 101;
+    InvalidCommand = 103;
+    Unauthorized = 105 ;
+    // server error > 300
+    SystemException = 500;
+    NotImplemented = 501;
+}
+
+enum MetaType {
+    int = 0;
+    string = 1;
+    float = 2;
+}
+
+enum ContentType {
+    Protobuf = 0;
+    Json = 1;
+}
+
+enum Flag {
+    Request = 0;
+    Response = 1;
+    Push = 2;
+}
+
+message Meta {
+    string key = 1;
+    string value = 2;
+    MetaType type = 3;
+}
+
+message Header {
+    string command = 1;
+    // sender channel id
+    string channelId = 2;
+    uint32 sequence = 3;
+    Flag flag = 4;
+    Status status = 5;
+    // destination is defined as a account,group or room
+    string dest = 6;
+    repeated Meta meta = 7;
+}
+
+message InnerHandshakeReq{
+    string ServiceId = 1;
+}
+
+message InnerHandshakeResponse{
+    uint32 Code = 1;
+    string  Error = 2;
+}

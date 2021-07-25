@@ -1,0 +1,154 @@
+syntax = "proto3";
+package pkt;
+option go_package = "./pkt";
+
+message LoginReq {
+    string token = 1;
+    string isp = 2;
+    string zone = 3; // location code
+    repeated string tags = 4;
+}
+
+message LoginResp {
+    string channelId = 1;
+}
+
+message KickoutNotify {
+    string channelId = 1;
+}
+
+message Session {
+    string channelId = 1;// session id
+    string gateId = 2; // gateway ID
+    string account = 3;
+    string zone = 4;
+    string isp = 5;
+    string remoteIP = 6;
+    string device = 7;
+    string app = 8;
+    repeated string tags = 9;
+}
+
+// chat message
+message MessageReq {
+    int32 type = 1;
+    string body = 2;
+    string extra = 3;
+}
+
+message MessageResp {
+    int64 messageId = 1;
+    int64 sendTime = 2;
+}
+
+message MessagePush {
+    int64 messageId = 1;
+    int32 type = 2;
+    string body = 3;
+    string extra = 4;
+    string sender = 5;
+    int64 sendTime = 6;
+}
+
+message ErrorResp {
+    string message= 1;
+}
+
+message MessageAckReq {
+    int64 messageId = 1;
+}
+
+message GroupCreateReq {
+    string name = 1;
+    string avatar = 2;
+    string introduction = 3;
+    string owner = 4;
+    repeated string members = 5;
+}
+
+message GroupCreateResp {
+    string group_id = 1;
+}
+
+message GroupCreateNotify {
+    string group_id = 1;
+    repeated string members = 2;
+}
+
+message GroupJoinReq {
+    string account = 1;
+    string group_id = 2;
+}
+
+message GroupQuitReq {
+    string account = 1;
+    string group_id = 2;
+}
+
+message GroupGetReq {
+    string group_id = 1;
+}
+
+message Member {
+    string account = 1;
+    string alias = 2;
+    string avatar = 3;
+    int64 join_time = 4;
+}
+
+message GroupGetResp {
+    string id = 1;
+    string name = 2;
+    string avatar = 3;
+    string introduction = 4;
+    string owner = 5;
+    repeated Member members = 6;
+    int64 created_at = 7;
+}
+
+message GroupJoinNotify {
+    string group_id = 1;
+    string account = 2;
+}
+
+message GroupQuitNotify {
+    string group_id = 1;
+    string account = 2;
+}
+
+message MessageIndexReq {
+    int64 message_id = 1;
+}
+
+message MessageIndexResp {
+    repeated MessageIndex indexes = 1;
+}
+
+message MessageIndex {
+    int64 message_id = 1;
+	int32 direction = 2;
+    int64 send_time  = 3;
+    string accountB = 4;
+    string group    = 5;
+}
+
+message MessageContentReq {
+    repeated int64 message_ids = 1;
+}
+
+message MessageContent {
+    int64 messageId = 1;
+    int32 type = 2;
+    string body = 3;
+    string extra = 4;
+}
+
+message MessageContentResp {
+    repeated MessageContent contents = 1;
+}
+
+// message Pkt {
+//     uint32 Source  = 1;
+//     uint64 Sequence = 3;
+//     bytes  Data = 5;
+// }
