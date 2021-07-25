@@ -4,8 +4,6 @@ import (
 	"context"
 	"net"
 	"time"
-
-	"github.com/klintcheng/kim/naming"
 )
 
 const (
@@ -15,9 +13,28 @@ const (
 	DefaultHeartbeat = time.Second * 55
 )
 
+// 定义了基础服务的抽象接口
+type Service interface {
+	ServiceID() string
+	ServiceName() string
+	GetMeta() map[string]string
+}
+
+// 定义服务注册的抽象接口
+type ServiceRegistration interface {
+	Service
+	PublicAddress() string
+	PublicPort() int
+	DialURL() string
+	GetTags() []string
+	GetProtocol() string
+	GetNamespace() string
+	String() string
+}
+
 // Server 定义了一个tcp/websocket不同协议通用的服务端的接口
 type Server interface {
-	naming.ServiceRegistration
+	ServiceRegistration
 	// SetAcceptor 设置Acceptor
 	SetAcceptor(Acceptor)
 	//SetMessageListener 设置上行消息监听器
@@ -87,8 +104,7 @@ type Channel interface {
 
 // Client is interface of client side
 type Client interface {
-	ID() string
-	Name() string
+	Service
 	// connect to server
 	Connect(string) error
 	// SetDialer 设置拨号处理器

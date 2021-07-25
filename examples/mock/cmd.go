@@ -2,6 +2,8 @@ package mock
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/segmentio/ksuid"
 	"github.com/spf13/cobra"
@@ -24,13 +26,16 @@ func NewClientCmd(ctx context.Context) *cobra.Command {
 			return runcli(ctx, opts)
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&opts.addr, "address", "a", "ws://localhost:8000", "server address")
+	cmd.PersistentFlags().StringVarP(&opts.addr, "address", "a", "localhost:8000", "server address")
 	cmd.PersistentFlags().StringVarP(&opts.protocol, "protocol", "p", "ws", "protocol ws or tcp")
 	return cmd
 }
 
 func runcli(ctx context.Context, opts *StartOptions) error {
 	cli := ClientDemo{}
+	if opts.protocol == "ws" && !strings.HasPrefix(opts.addr, "ws:") {
+		opts.addr = fmt.Sprintf("ws://%s", opts.addr)
+	}
 	cli.Start(ksuid.New().String(), opts.protocol, opts.addr)
 	return nil
 }

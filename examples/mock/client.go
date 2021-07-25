@@ -60,7 +60,7 @@ func (c *ClientDemo) Start(userID, protocol, addr string) {
 			continue
 		}
 		recv++
-		logger.Warnf("%s receive message [%s]", cli.ID(), frame.GetPayload())
+		logger.Warnf("%s receive message [%s]", cli.ServiceID(), frame.GetPayload())
 		if recv == count { // 接收完消息
 			break
 		}

@@ -1,0 +1,112 @@
+syntax = "proto3";
+package rpc;
+option go_package = "./rpc";
+
+
+message User {
+    string account = 1;
+    string alias = 2;
+    string avatar = 3;
+    int64 created_at = 4;
+}
+
+message Message {
+    int64 id = 1;
+    int32 type = 2;
+    string body = 3;
+    string extra = 4;
+}
+
+message Member {
+    string account = 1;
+    string alias = 2;
+    string avatar = 3;
+    int64 join_time = 4;
+}
+
+// service 
+
+message InsertMessageReq {
+    string sender = 1;
+    string dest = 2;
+    int64 send_time = 3;
+    Message message = 4;
+}
+
+message InsertMessageResp {
+    int64 message_id = 1;
+}
+
+message AckMessageReq {
+    string account = 1;
+    int64 message_id = 2;
+}
+
+message CreateGroupReq {
+    string app = 1;
+    string name = 2;
+    string avatar = 3;
+    string introduction = 4;
+    string owner = 5;
+    repeated string members = 6;
+}
+
+message CreateGroupResp {
+    string group_id = 1;
+}
+
+message JoinGroupReq {
+    string account = 1;
+    string group_id = 2;
+}
+
+message QuitGroupReq {
+    string account = 1;
+    string group_id = 2;
+}
+
+message GetGroupReq {
+    string group_id = 1;
+}
+
+message GetGroupResp {
+    string id = 1;
+    string name = 2;
+    string avatar = 3;
+    string introduction = 4;
+    string owner = 5;
+    int64 created_at = 6;
+}
+
+message GroupMembersReq {
+    string group_id = 1;
+}
+
+message GroupMembersResp {
+    repeated Member users = 1;
+}
+
+message GetOfflineMessageIndexReq {
+    string account = 1;
+    int64 message_id = 2;
+}
+
+message GetOfflineMessageIndexResp {
+    repeated MessageIndex list = 1;
+}
+
+message MessageIndex {
+    int64 message_id = 1;
+    int32 direction = 2;
+    int64 send_time  = 3;
+	string accountB = 4;
+	string group    = 5;
+}
+
+message GetOfflineMessageContentReq {
+    repeated int64 message_ids = 1;
+}
+
+message GetOfflineMessageContentResp {
+    repeated Message list = 1;
+}
