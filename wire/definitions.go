@@ -32,7 +32,9 @@ const (
 
 // Meta Key of a packet
 const (
-	MetaDestServer   = "dest.server"
+	// 消息将要送达的网关的ServiceName
+	MetaDestServer = "dest.server"
+	// 消息将要送达的channels
 	MetaDestChannels = "dest.channels"
 )
 
@@ -74,7 +76,7 @@ const (
 )
 
 const (
-	MessageTypeText  = 1
+	MessageTypeText  = 1 // 文本消息
 	MessageTypeImage = 2
 	MessageTypeVoice = 3
 	MessageTypeVideo = 4

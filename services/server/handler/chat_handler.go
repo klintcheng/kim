@@ -87,31 +87,17 @@ func (h *ChatHandler) DoGroupTalk(ctx kim.Context) {
 		_ = ctx.RespWithError(pkt.Status_NoDestination, ErrNoDestination)
 		return
 	}
+	// 1. 解包
 	var req pkt.MessageReq
 	if err := ctx.ReadBody(&req); err != nil {
 		_ = ctx.RespWithError(pkt.Status_InvalidPacketBody, err)
 		return
 	}
+	// 群聊里dest就不再是user accout，而是群ID
 	group := ctx.Header().GetDest()
 	sendTime := time.Now().UnixNano()
 
-	membersResp, err := h.groupService.Members(ctx.Session().GetApp(), &rpc.GroupMembersReq{
-		GroupId: group,
-	})
-	if err != nil {
-		_ = ctx.RespWithError(pkt.Status_SystemException, err)
-		return
-	}
-	var members = make([]string, len(membersResp.Users))
-	for i, user := range membersResp.Users {
-		members[i] = user.Account
-	}
-	// find group members location
-	locs, err := ctx.GetLocations(members...)
-	if err != nil && err != kim.ErrSessionNil {
-		_ = ctx.RespWithError(pkt.Status_SystemException, err)
-		return
-	}
+	// 2. 保存离线消息
 	resp, err := h.msgService.InsertGroup(ctx.Session().GetApp(), &rpc.InsertMessageReq{
 		Sender:   ctx.Session().GetAccount(),
 		Dest:     group,
@@ -126,8 +112,26 @@ func (h *ChatHandler) DoGroupTalk(ctx kim.Context) {
 		_ = ctx.RespWithError(pkt.Status_SystemException, err)
 		return
 	}
+	// 3. 读取群成员列表
+	membersResp, err := h.groupService.Members(ctx.Session().GetApp(), &rpc.GroupMembersReq{
+		GroupId: group,
+	})
+	if err != nil {
+		_ = ctx.RespWithError(pkt.Status_SystemException, err)
+		return
+	}
+	var members = make([]string, len(membersResp.Users))
+	for i, user := range membersResp.Users {
+		members[i] = user.Account
+	}
+	// 4. 批量寻址（群成员）
+	locs, err := ctx.GetLocations(members...)
+	if err != nil && err != kim.ErrSessionNil {
+		_ = ctx.RespWithError(pkt.Status_SystemException, err)
+		return
+	}
 
-	// push to receiver
+	// 5. 批量推送消息给成员
 	if len(locs) > 0 {
 		if err = ctx.Dispatch(&pkt.MessagePush{
 			MessageId: resp.MessageId,
@@ -141,7 +145,7 @@ func (h *ChatHandler) DoGroupTalk(ctx kim.Context) {
 			return
 		}
 	}
-	// resp
+	// 6. 返回一条resp消息
 	_ = ctx.Resp(pkt.Status_Success, &pkt.MessageResp{
 		MessageId: resp.MessageId,
 		SendTime:  sendTime,
