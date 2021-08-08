@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kelseyhightower/envconfig"
+	"github.com/klintcheng/kim"
 	"github.com/klintcheng/kim/logger"
 	"github.com/spf13/viper"
 )
@@ -18,6 +19,7 @@ type Config struct {
 	PublicPort    int      `envconfig:"publicPort"`
 	Tags          []string `envconfig:"tags"`
 	ConsulURL     string   `envconfig:"consulURL"`
+	AppSecret     string   `envconfig:"appSecret"`
 }
 
 // Init InitConfig
@@ -38,6 +40,9 @@ func Init(file string) (*Config, error) {
 	err := envconfig.Process("", &config)
 	if err != nil {
 		return nil, err
+	}
+	if config.PublicAddress == "" {
+		config.PublicAddress = kim.GetLocalIP()
 	}
 	logger.Info(config)
 

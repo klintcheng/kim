@@ -22,12 +22,29 @@ type Message interface {
 type MessageHttp struct {
 	url string
 	cli *resty.Client
+	srv *resty.SRVRecord
 }
 
 func NewMessageService(url string) Message {
+	cli := resty.New().SetRetryCount(3).SetTimeout(time.Second * 5)
+	cli.SetHeader("Content-Type", "application/x-protobuf")
+	cli.SetHeader("Accept", "application/x-protobuf")
 	return &MessageHttp{
 		url: url,
-		cli: resty.New().SetRetryCount(3).SetTimeout(time.Second*5).SetHeader("userAgent", "kim_server"),
+		cli: cli,
+	}
+}
+
+func NewMessageServiceWithSRV(scheme string, srv *resty.SRVRecord) Message {
+	cli := resty.New().SetRetryCount(3).SetTimeout(time.Second * 5)
+	cli.SetHeader("Content-Type", "application/x-protobuf")
+	cli.SetHeader("Accept", "application/x-protobuf")
+	cli.SetScheme("http")
+
+	return &MessageHttp{
+		url: "",
+		cli: cli,
+		srv: srv,
 	}
 }
 
@@ -36,7 +53,7 @@ func (m *MessageHttp) InsertUser(app string, req *rpc.InsertMessageReq) (*rpc.In
 	t1 := time.Now()
 
 	body, _ := proto.Marshal(req)
-	response, err := m.cli.R().SetHeader("Content-Type", "application/x-protobuf").SetBody(body).Post(path)
+	response, err := m.Req().SetBody(body).Post(path)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +70,7 @@ func (m *MessageHttp) InsertGroup(app string, req *rpc.InsertMessageReq) (*rpc.I
 	path := fmt.Sprintf("%s/api/%s/message/group", m.url, app)
 	t1 := time.Now()
 	body, _ := proto.Marshal(req)
-	response, err := m.cli.R().SetHeader("Content-Type", "application/x-protobuf").SetBody(body).Post(path)
+	response, err := m.Req().SetBody(body).Post(path)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +86,7 @@ func (m *MessageHttp) InsertGroup(app string, req *rpc.InsertMessageReq) (*rpc.I
 func (m *MessageHttp) SetAck(app string, req *rpc.AckMessageReq) error {
 	path := fmt.Sprintf("%s/api/%s/message/ack", m.url, app)
 	body, _ := proto.Marshal(req)
-	response, err := m.cli.R().SetHeader("Content-Type", "application/x-protobuf").SetBody(body).Post(path)
+	response, err := m.Req().SetBody(body).Post(path)
 	if err != nil {
 		return err
 	}
@@ -82,7 +99,8 @@ func (m *MessageHttp) SetAck(app string, req *rpc.AckMessageReq) error {
 func (m *MessageHttp) GetMessageIndex(app string, req *rpc.GetOfflineMessageIndexReq) (*rpc.GetOfflineMessageIndexResp, error) {
 	path := fmt.Sprintf("%s/api/%s/offline/index", m.url, app)
 	body, _ := proto.Marshal(req)
-	response, err := m.cli.R().SetHeader("Content-Type", "application/x-protobuf").SetBody(body).Post(path)
+
+	response, err := m.Req().SetBody(body).Post(path)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +115,7 @@ func (m *MessageHttp) GetMessageIndex(app string, req *rpc.GetOfflineMessageInde
 func (m *MessageHttp) GetMessageContent(app string, req *rpc.GetOfflineMessageContentReq) (*rpc.GetOfflineMessageContentResp, error) {
 	path := fmt.Sprintf("%s/api/%s/offline/content", m.url, app)
 	body, _ := proto.Marshal(req)
-	response, err := m.cli.R().SetHeader("Content-Type", "application/x-protobuf").SetBody(body).Post(path)
+	response, err := m.Req().SetBody(body).Post(path)
 	if err != nil {
 		return nil, err
 	}
@@ -107,4 +125,11 @@ func (m *MessageHttp) GetMessageContent(app string, req *rpc.GetOfflineMessageCo
 	var resp rpc.GetOfflineMessageContentResp
 	_ = proto.Unmarshal(response.Body(), &resp)
 	return &resp, nil
+}
+
+func (m *MessageHttp) Req() *resty.Request {
+	if m.srv == nil {
+		return m.cli.R()
+	}
+	return m.cli.R().SetSRV(m.srv)
 }

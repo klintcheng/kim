@@ -1,0 +1,39 @@
+version: '3.1'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: kim_mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    network_mode: bridge
+    ports:
+      - 3306:3306
+    volumes:
+      - ~/data/mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+  redis:
+    image: redis:6.2
+    container_name: kim_redis
+    command: redis-server
+    network_mode: bridge
+    ports:
+      - 6379:6379
+    volumes:
+      - ~/data/redis:/data
+  consul:
+    image: consul:latest
+    container_name: kim_consul
+    network_mode: bridge
+    ports:
+      - '8300:8300'
+      - '8301:8301'
+      - '8301:8301/udp'
+      - '8500:8500'
+      - '53:53'
+      - '53:53/udp'
+    command: agent -dev -dns-port=53 -recursor=8.8.8.8 -ui -client=0.0.0.0
+    environment:
+      CONSUL_BIND_INTERFACE: eth0
+      CONSUL_ALLOW_PRIVILEGED_PORTS: 53

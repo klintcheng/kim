@@ -14,6 +14,7 @@ func NewLoginHandler() *LoginHandler {
 }
 
 func (h *LoginHandler) DoSysLogin(ctx kim.Context) {
+	log := logger.WithField("func", "DoSysLogin")
 	// 1. 序列化
 	var session pkt.Session
 	if err := ctx.ReadBody(&session); err != nil {
@@ -21,13 +22,7 @@ func (h *LoginHandler) DoSysLogin(ctx kim.Context) {
 		return
 	}
 
-	logger.WithFields(logger.Fields{
-		"Func":      "Login",
-		"ChannelId": session.GetChannelId(),
-		"Account":   session.GetAccount(),
-		"RemoteIP":  session.GetRemoteIP(),
-	}).Info("do login")
-
+	log.Infof("do login of %v ", session.String())
 	// 2. 检查当前账号是否已经登陆在其它地方
 	old, err := ctx.GetLocation(session.Account, "")
 	if err != nil && err != kim.ErrSessionNil {
@@ -56,11 +51,7 @@ func (h *LoginHandler) DoSysLogin(ctx kim.Context) {
 }
 
 func (h *LoginHandler) DoSysLogout(ctx kim.Context) {
-	logger.WithFields(logger.Fields{
-		"Func":      "Logout",
-		"ChannelId": ctx.Session().GetChannelId(),
-		"Account":   ctx.Session().GetAccount(),
-	}).Info("do Logout ")
+	logger.WithField("func", "DoSysLogout").Infof("do Logout of %s %s ", ctx.Session().GetChannelId(), ctx.Session().GetAccount())
 
 	err := ctx.Delete(ctx.Session().GetAccount(), ctx.Session().GetChannelId())
 	if err != nil {

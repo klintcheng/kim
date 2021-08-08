@@ -52,6 +52,7 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 
 	handler := &serv.Handler{
 		ServiceID: config.ServiceID,
+		AppSecret: config.AppSecret,
 	}
 
 	var srv kim.Server

@@ -22,6 +22,7 @@ var log = logger.WithFields(logger.Fields{
 // Handler Handler
 type Handler struct {
 	ServiceID string
+	AppSecret string
 }
 
 // Accept this connection
@@ -58,8 +59,12 @@ func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	secret := h.AppSecret
+	if secret == "" {
+		secret = token.DefaultSecret
+	}
 	// 4. 使用默认的DefaultSecret 解析token
-	tk, err := token.Parse(token.DefaultSecret, login.Token)
+	tk, err := token.Parse(secret, login.Token)
 	if err != nil {
 		// 5. 如果token无效，就返回SDK一个Unauthorized消息
 		resp := pkt.NewFrom(&req.Header)

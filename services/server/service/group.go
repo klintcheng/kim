@@ -20,20 +20,38 @@ type Group interface {
 type GroupHttp struct {
 	url string
 	cli *resty.Client
+	srv *resty.SRVRecord
 }
 
 func NewGroupService(url string) Group {
+	cli := resty.New().SetRetryCount(3).SetTimeout(time.Second * 5)
+	cli.SetHeader("Content-Type", "application/x-protobuf")
+	cli.SetHeader("Accept", "application/x-protobuf")
+	cli.SetScheme("http")
 	return &GroupHttp{
 		url: url,
-		cli: resty.New().SetRetryCount(3).SetTimeout(time.Second*5).SetHeader("userAgent", "kim_server"),
+		cli: cli,
 	}
 }
 
-func (m *GroupHttp) Create(app string, req *rpc.CreateGroupReq) (*rpc.CreateGroupResp, error) {
-	path := fmt.Sprintf("%s/api/%s/group", m.url, app)
+func NewGroupServiceWithSRV(scheme string, srv *resty.SRVRecord) Group {
+	cli := resty.New().SetRetryCount(3).SetTimeout(time.Second * 5)
+	cli.SetHeader("Content-Type", "application/x-protobuf")
+	cli.SetHeader("Accept", "application/x-protobuf")
+	cli.SetScheme("http")
+
+	return &GroupHttp{
+		url: "",
+		cli: cli,
+		srv: srv,
+	}
+}
+
+func (g *GroupHttp) Create(app string, req *rpc.CreateGroupReq) (*rpc.CreateGroupResp, error) {
+	path := fmt.Sprintf("%s/api/%s/group", g.url, app)
 
 	body, _ := proto.Marshal(req)
-	response, err := m.cli.R().SetHeader("Content-Type", "application/x-protobuf").SetBody(body).Post(path)
+	response, err := g.Req().SetBody(body).Post(path)
 	if err != nil {
 		return nil, err
 	}
@@ -46,10 +64,10 @@ func (m *GroupHttp) Create(app string, req *rpc.CreateGroupReq) (*rpc.CreateGrou
 	return &resp, nil
 }
 
-func (m *GroupHttp) Members(app string, req *rpc.GroupMembersReq) (*rpc.GroupMembersResp, error) {
-	path := fmt.Sprintf("%s/api/%s/group/members/%s", m.url, app, req.GroupId)
+func (g *GroupHttp) Members(app string, req *rpc.GroupMembersReq) (*rpc.GroupMembersResp, error) {
+	path := fmt.Sprintf("%s/api/%s/group/members/%s", g.url, app, req.GroupId)
 
-	response, err := m.cli.R().SetHeader("Content-Type", "application/x-protobuf").Get(path)
+	response, err := g.Req().Get(path)
 	if err != nil {
 		return nil, err
 	}
@@ -62,10 +80,10 @@ func (m *GroupHttp) Members(app string, req *rpc.GroupMembersReq) (*rpc.GroupMem
 	return &resp, nil
 }
 
-func (m *GroupHttp) Join(app string, req *rpc.JoinGroupReq) error {
-	path := fmt.Sprintf("%s/api/%s/group/member", m.url, app)
+func (g *GroupHttp) Join(app string, req *rpc.JoinGroupReq) error {
+	path := fmt.Sprintf("%s/api/%s/group/member", g.url, app)
 	body, _ := proto.Marshal(req)
-	response, err := m.cli.R().SetHeader("Content-Type", "application/x-protobuf").SetBody(body).Post(path)
+	response, err := g.Req().SetBody(body).Post(path)
 	if err != nil {
 		return err
 	}
@@ -75,10 +93,10 @@ func (m *GroupHttp) Join(app string, req *rpc.JoinGroupReq) error {
 	return nil
 }
 
-func (m *GroupHttp) Quit(app string, req *rpc.QuitGroupReq) error {
-	path := fmt.Sprintf("%s/api/%s/group/member", m.url, app)
+func (g *GroupHttp) Quit(app string, req *rpc.QuitGroupReq) error {
+	path := fmt.Sprintf("%s/api/%s/group/member", g.url, app)
 	body, _ := proto.Marshal(req)
-	response, err := m.cli.R().SetHeader("Content-Type", "application/x-protobuf").SetBody(body).Delete(path)
+	response, err := g.Req().SetBody(body).Delete(path)
 	if err != nil {
 		return err
 	}
@@ -86,4 +104,11 @@ func (m *GroupHttp) Quit(app string, req *rpc.QuitGroupReq) error {
 		return fmt.Errorf("GroupHttp.Quit response.StatusCode() = %d, want 200", response.StatusCode())
 	}
 	return nil
+}
+
+func (g *GroupHttp) Req() *resty.Request {
+	if g.srv == nil {
+		return g.cli.R()
+	}
+	return g.cli.R().SetSRV(g.srv)
 }

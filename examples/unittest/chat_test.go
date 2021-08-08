@@ -53,10 +53,11 @@ func Test_Usertalk(t *testing.T) {
 }
 
 func Test_grouptalk(t *testing.T) {
+	// 1. test1 登陆
 	cli1, err := login("test1")
 	assert.Nil(t, err)
 
-	// 创建群
+	// 2. 创建群
 	p := pkt.New(wire.CommandGroupCreate)
 	p.WriteBody(&pkt.GroupCreateReq{
 		Name:    "group1",
@@ -65,14 +66,14 @@ func Test_grouptalk(t *testing.T) {
 	})
 	err = cli1.Send(pkt.Marshal(p))
 	assert.Nil(t, err)
-	// 读取返回信息
+
+	// 3. 读取创建群返回信息
 	ack, err := cli1.Read()
 	assert.Nil(t, err)
-
 	ackp, _ := pkt.MustReadLogicPkt(bytes.NewBuffer(ack.GetPayload()))
 	assert.Equal(t, pkt.Status_Success, ackp.GetStatus())
 	assert.Equal(t, wire.CommandGroupCreate, ackp.GetCommand())
-
+	// 4. 解包
 	var createresp pkt.GroupCreateResp
 	err = ackp.ReadBody(&createresp)
 	assert.Nil(t, err)
@@ -81,37 +82,39 @@ func Test_grouptalk(t *testing.T) {
 	if group == "" {
 		return
 	}
-	// 登录
+	// 5. 群成员test2、test3 登录
 	cli2, err := login("test2")
 	assert.Nil(t, err)
 	cli3, err := login("test3")
 	assert.Nil(t, err)
 	t1 := time.Now()
 
-	// 发送消息
+	// 6. 发送群消息 CommandChatGroupTalk
 	gtalk := pkt.New(wire.CommandChatGroupTalk, pkt.WithDest(group)).WriteBody(&pkt.MessageReq{
 		Type: 1,
 		Body: "hellogroup",
 	})
 	err = cli1.Send(pkt.Marshal(gtalk))
 	assert.Nil(t, err)
-
+	// 7. 读取resp消息，确认消息发送成功
 	ack, _ = cli1.Read()
 	ackp, _ = pkt.MustReadLogicPkt(bytes.NewBuffer(ack.GetPayload()))
 	assert.Equal(t, pkt.Status_Success, ackp.GetStatus())
 
-	// 读取消息
+	// 7. test2 读取消息
 	notify1, _ := cli2.Read()
 	n1, _ := pkt.MustReadLogicPkt(bytes.NewBuffer(notify1.GetPayload()))
 	assert.Equal(t, wire.CommandChatGroupTalk, n1.GetCommand())
 	var notify pkt.MessagePush
 	_ = n1.ReadBody(&notify)
+	// 8. 校验消息内容
 	assert.Equal(t, "hellogroup", notify.Body)
 	assert.Equal(t, int32(1), notify.Type)
 	assert.Empty(t, notify.Extra)
 	assert.Greater(t, notify.SendTime, t1.UnixNano())
 	assert.Greater(t, notify.MessageId, int64(10000))
 
+	// 9. test3 读取消息
 	notify2, _ := cli3.Read()
 	n2, _ := pkt.MustReadLogicPkt(bytes.NewBuffer(notify2.GetPayload()))
 	_ = n2.ReadBody(&notify)

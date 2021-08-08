@@ -3,14 +3,19 @@ package service
 import (
 	"testing"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/klintcheng/kim/wire/rpc"
 	"github.com/stretchr/testify/assert"
 )
 
 const app = "kim_t"
 
+var groupService = NewGroupServiceWithSRV("http", &resty.SRVRecord{
+	Domain:  "consul",
+	Service: "royal",
+})
+
 func TestGroupService(t *testing.T) {
-	groupService := NewGroupService("http://localhost:8080")
 
 	resp, err := groupService.Create(app, &rpc.CreateGroupReq{
 		Name:    "test",

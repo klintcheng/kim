@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/klintcheng/kim"
 	"github.com/klintcheng/kim/container"
 	"github.com/klintcheng/kim/logger"
@@ -11,6 +12,7 @@ import (
 	"github.com/klintcheng/kim/services/server/conf"
 	"github.com/klintcheng/kim/services/server/handler"
 	"github.com/klintcheng/kim/services/server/serv"
+	"github.com/klintcheng/kim/services/server/service"
 	"github.com/klintcheng/kim/storage"
 	"github.com/klintcheng/kim/tcp"
 	"github.com/klintcheng/kim/wire"
@@ -49,11 +51,33 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		Level: "trace",
 	})
 
+	srvRecord := &resty.SRVRecord{
+		Domain:  "consul",
+		Service: wire.SNService,
+	}
+
+	groupService := service.NewGroupServiceWithSRV("http", srvRecord)
+	messageService := service.NewMessageServiceWithSRV("http", srvRecord)
+
 	r := kim.NewRouter()
 	// login
 	loginHandler := handler.NewLoginHandler()
 	r.Handle(wire.CommandLoginSignIn, loginHandler.DoSysLogin)
 	r.Handle(wire.CommandLoginSignOut, loginHandler.DoSysLogout)
+	// talk
+	chatHandler := handler.NewChatHandler(messageService, groupService)
+	r.Handle(wire.CommandChatUserTalk, chatHandler.DoUserTalk)
+	r.Handle(wire.CommandChatGroupTalk, chatHandler.DoGroupTalk)
+	r.Handle(wire.CommandChatTalkAck, chatHandler.DoTalkAck)
+	// group
+	groupHandler := handler.NewGroupHandler(groupService)
+	r.Handle(wire.CommandGroupCreate, groupHandler.DoCreate)
+	r.Handle(wire.CommandGroupJoin, groupHandler.DoJoin)
+	r.Handle(wire.CommandGroupQuit, groupHandler.DoQuit)
+	// offline
+	offlineHandler := handler.NewOfflineHandler(messageService)
+	r.Handle(wire.CommandOfflineIndex, offlineHandler.DoSyncIndex)
+	r.Handle(wire.CommandOfflineContent, offlineHandler.DoSyncContent)
 
 	rdb, err := conf.InitRedis(config.RedisAddrs, "")
 	if err != nil {

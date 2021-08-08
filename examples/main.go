@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 
+	"github.com/klintcheng/kim/examples/echo"
 	"github.com/klintcheng/kim/examples/mock"
 	"github.com/klintcheng/kim/logger"
 	"github.com/spf13/cobra"
@@ -20,6 +21,9 @@ func main() {
 		Short:   "server",
 	}
 	ctx := context.Background()
+
+	// run echo client
+	root.AddCommand(echo.NewCmd(ctx))
 
 	// mock
 	root.AddCommand(mock.NewClientCmd(ctx))
