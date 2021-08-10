@@ -145,7 +145,7 @@ func setMesssageAck(cache *redis.Client, account string, msgId int64) error {
 		return nil
 	}
 	key := database.KeyMessageAckIndex(account)
-	return cache.Set(key, msgId, wire.OfflineMessageExpiresIn).Err()
+	return cache.Set(key, msgId, wire.OfflineReadIndexExpiresIn).Err()
 }
 
 func (h *ServiceHandler) GetOfflineMessageIndex(c iris.Context) {
@@ -161,9 +161,9 @@ func (h *ServiceHandler) GetOfflineMessageIndex(c iris.Context) {
 		return
 	}
 
-	var indexs []*rpc.MessageIndex
+	var indexes []*rpc.MessageIndex
 	tx := h.MessageDb.Model(&database.MessageIndex{}).Select("send_time", "account_b", "direction", "message_id", "group")
-	err = tx.Where("account_a=? and send_time>?", req.Account, start).Order("send_time asc").Limit(wire.OfflineSyncIndexCount).Find(&indexs).Error
+	err = tx.Where("account_a=? and send_time>?", req.Account, start).Order("send_time asc").Limit(wire.OfflineSyncIndexCount).Find(&indexes).Error
 	if err != nil {
 		c.StopWithError(iris.StatusInternalServerError, err)
 		return
@@ -174,7 +174,7 @@ func (h *ServiceHandler) GetOfflineMessageIndex(c iris.Context) {
 		return
 	}
 	_, _ = c.Negotiate(&rpc.GetOfflineMessageIndexResp{
-		List: indexs,
+		List: indexes,
 	})
 }
 
@@ -186,19 +186,18 @@ func (h *ServiceHandler) getSentTime(account string, msgId int64) (int64, error)
 	}
 	var start int64
 	if msgId > 0 {
+		// 2.根据消息ID读取此条消息的发送时间。
 		var content database.MessageContent
 		err := h.MessageDb.Select("send_time").First(&content, msgId).Error
 		if err != nil {
-			return 0, err
-		}
-		if content.SendTime > 0 {
-			start = content.SendTime
-		} else {
+			//3.如果此条消息不存在，返回最近一天
 			start = time.Now().AddDate(0, 0, -1).UnixNano()
+		} else {
+			start = content.SendTime
 		}
 	}
-	// 最多保存一个月的离线消息
-	earliestKeepTime := time.Now().AddDate(0, 0, -1*wire.OfflineMessageStoreDays).UnixNano()
+	// 4.返回默认的离线消息过期时间
+	earliestKeepTime := time.Now().AddDate(0, 0, -1*wire.OfflineMessageExpiresIn).UnixNano()
 	if start == 0 || start < earliestKeepTime {
 		start = earliestKeepTime
 	}
@@ -212,7 +211,7 @@ func (h *ServiceHandler) GetOfflineMessageContent(c iris.Context) {
 		return
 	}
 	mlen := len(req.MessageIds)
-	if mlen > 1000 {
+	if mlen > wire.MessageMaxCountPerPage {
 		c.StopWithText(iris.StatusBadRequest, "too many MessageIds")
 		return
 	}
