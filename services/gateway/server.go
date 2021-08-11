@@ -47,7 +47,7 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		return err
 	}
 	_ = logger.Init(logger.Settings{
-		Level: "trace",
+		Level: "info",
 	})
 
 	handler := &serv.Handler{
