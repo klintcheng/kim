@@ -79,6 +79,7 @@ func (s *Server) Start() error {
 		// step 3
 		id, err := s.Accept(conn, s.options.loginwait)
 		if err != nil {
+			log.Warn(err)
 			_ = conn.WriteFrame(kim.OpClose, []byte(err.Error()))
 			conn.Close()
 			return

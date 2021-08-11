@@ -11,6 +11,7 @@ import (
 	"github.com/klintcheng/kim/naming/consul"
 	"github.com/klintcheng/kim/services/gateway/conf"
 	"github.com/klintcheng/kim/services/gateway/serv"
+	"github.com/klintcheng/kim/tcp"
 	"github.com/klintcheng/kim/websocket"
 	"github.com/klintcheng/kim/wire"
 	"github.com/spf13/cobra"
@@ -64,8 +65,11 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		Protocol: opts.protocol,
 		Tags:     config.Tags,
 	}
+
 	if opts.protocol == "ws" {
 		srv = websocket.NewServer(config.Listen, service)
+	} else if opts.protocol == "tcp" {
+		srv = tcp.NewServer(config.Listen, service)
 	}
 
 	srv.SetReadWait(time.Minute * 2)
