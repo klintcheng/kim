@@ -5,15 +5,18 @@ option go_package = "./pkt";
 // status is a uint16 value 
 enum Status {
     Success = 0;
-    SessionNotFound = 10;
-    // client error 100-300
+    // client defined
+    
+    // client error 100-200
     NoDestination = 100;
     InvalidPacketBody = 101;
     InvalidCommand = 103;
     Unauthorized = 105 ;
-    // server error > 300
-    SystemException = 500;
-    NotImplemented = 501;
+    // server error 300-400
+    SystemException = 300;
+    NotImplemented = 301;
+    //specific error
+    SessionNotFound = 404; // session lost 
 }
 
 enum MetaType {
