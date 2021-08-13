@@ -4,8 +4,10 @@ go 1.16
 
 require (
 	github.com/Joker/hpp v1.0.0 // indirect
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-redis/redis/v7 v7.4.0
+	github.com/go-resty/resty/v2 v2.6.0
 	github.com/gobwas/ws v1.0.4
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.4.3 // indirect
@@ -29,4 +31,6 @@ require (
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.25.0
+	gorm.io/driver/mysql v1.1.1
+	gorm.io/gorm v1.21.12
 )

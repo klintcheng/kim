@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-var Default = binary.LittleEndian
+var Default = binary.BigEndian
 
 // ReadUint8 从 reader 中读取一个 uint8
 func ReadUint8(r io.Reader) (uint8, error) {

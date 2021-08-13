@@ -1,7 +1,6 @@
 package pkt
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -111,7 +110,7 @@ func (p *LogicPkt) Encode(w io.Writer) error {
 
 // ReadBody val must be a pointer
 func (p *LogicPkt) ReadBody(val proto.Message) error {
-	return json.Unmarshal(p.Body, val)
+	return proto.Unmarshal(p.Body, val)
 }
 
 // WritePb WritePb
@@ -119,7 +118,7 @@ func (p *LogicPkt) WriteBody(val proto.Message) *LogicPkt {
 	if val == nil {
 		return p
 	}
-	p.Body, _ = json.Marshal(val)
+	p.Body, _ = proto.Marshal(val)
 	return p
 }
 

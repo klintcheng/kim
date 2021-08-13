@@ -6,7 +6,9 @@ import (
 
 	"github.com/klintcheng/kim/logger"
 	"github.com/klintcheng/kim/services/gateway"
+	"github.com/klintcheng/kim/services/router"
 	"github.com/klintcheng/kim/services/server"
+	"github.com/klintcheng/kim/services/service"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +26,8 @@ func main() {
 
 	root.AddCommand(gateway.NewServerStartCmd(ctx, version))
 	root.AddCommand(server.NewServerStartCmd(ctx, version))
+	root.AddCommand(service.NewServerStartCmd(ctx, version))
+	root.AddCommand(router.NewServerStartCmd(ctx, version))
 
 	if err := root.Execute(); err != nil {
 		logger.WithError(err).Fatal("Could not run command")

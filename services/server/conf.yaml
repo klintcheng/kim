@@ -1,6 +1,5 @@
 ServiceID: chat01
 Listen: ":8005"
-PublicAddress: "localhost"
 PublicPort: 8005
 Tags:
   - server

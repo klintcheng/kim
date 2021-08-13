@@ -22,6 +22,7 @@ var log = logger.WithFields(logger.Fields{
 // Handler Handler
 type Handler struct {
 	ServiceID string
+	AppSecret string
 }
 
 // Accept this connection
@@ -42,6 +43,7 @@ func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
 	buf := bytes.NewBuffer(frame.GetPayload())
 	req, err := pkt.MustReadLogicPkt(buf)
 	if err != nil {
+		log.Error(err)
 		return "", err
 	}
 	// 2. 必须是登陆包
@@ -49,7 +51,7 @@ func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
 		resp := pkt.NewFrom(&req.Header)
 		resp.Status = pkt.Status_InvalidCommand
 		_ = conn.WriteFrame(kim.OpBinary, pkt.Marshal(resp))
-		return "", fmt.Errorf("must be a InvalidCommand command")
+		return "", fmt.Errorf("must be a SignIn command")
 	}
 
 	// 3. 反序列化Body
@@ -58,8 +60,12 @@ func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	secret := h.AppSecret
+	if secret == "" {
+		secret = token.DefaultSecret
+	}
 	// 4. 使用默认的DefaultSecret 解析token
-	tk, err := token.Parse(token.DefaultSecret, login.Token)
+	tk, err := token.Parse(secret, login.Token)
 	if err != nil {
 		// 5. 如果token无效，就返回SDK一个Unauthorized消息
 		resp := pkt.NewFrom(&req.Header)
@@ -69,6 +75,7 @@ func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
 	}
 	// 6. 生成一个全局唯一的ChannelID
 	id := generateChannelID(h.ServiceID, tk.Account)
+	log.Infof("accept %v channel:%s", tk, id)
 
 	req.ChannelId = id
 	req.WriteBody(&pkt.Session{

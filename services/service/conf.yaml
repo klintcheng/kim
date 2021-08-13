@@ -1,0 +1,9 @@
+ServiceID: royal01
+Listen: ":8080"
+PublicPort: 8080
+Tags:
+  - royal
+ConsulURL: localhost:8500
+RedisAddrs: localhost:6379
+BaseDb: root:123456@tcp(127.0.0.1:3306)/kim_base?charset=utf8mb4&parseTime=True&loc=Local
+MessageDb: root:123456@tcp(127.0.0.1:3306)/kim_message?charset=utf8mb4&parseTime=True&loc=Local

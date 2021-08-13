@@ -30,7 +30,6 @@ type Server struct {
 	kim.StateListener
 	once    sync.Once
 	options ServerOptions
-	quit    *kim.Event
 }
 
 // NewServer NewServer
@@ -39,7 +38,6 @@ func NewServer(listen string, service kim.ServiceRegistration) kim.Server {
 		listen:              listen,
 		ServiceRegistration: service,
 		ChannelMap:          kim.NewChannels(100),
-		quit:                kim.NewEvent(),
 		options: ServerOptions{
 			loginwait: kim.DefaultLoginWait,
 			readwait:  kim.DefaultReadWait,
@@ -106,12 +104,6 @@ func (s *Server) Start() error {
 			_ = s.Disconnect(channel.ID())
 			channel.Close()
 		}(rawconn)
-
-		select {
-		case <-s.quit.Done():
-			return fmt.Errorf("listen exited")
-		default:
-		}
 	}
 
 }

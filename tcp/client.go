@@ -3,7 +3,6 @@ package tcp
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -56,10 +55,6 @@ func NewClientWithProps(id, name string, meta map[string]string, opts ClientOpti
 
 // Connect to server
 func (c *Client) Connect(addr string) error {
-	_, err := url.Parse(addr)
-	if err != nil {
-		return err
-	}
 	// 这里是一个CAS原子操作，对比并设置值，是并发安全的。
 	if !atomic.CompareAndSwapInt32(&c.state, 0, 1) {
 		return fmt.Errorf("client has connected")
