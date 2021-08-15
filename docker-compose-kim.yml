@@ -1,0 +1,36 @@
+version: '3.1'
+
+services:
+  royal:
+    image: kim_royal:latest
+    container_name: kim_royal
+    restart: always
+    network_mode: bridge
+    ports:
+      - 8080:8080
+    volumes:
+      - ~/data/:/data/
+    environment:
+      external_ip: 192.168.3.201
+  gateway:
+    image: kim_gateway:latest
+    container_name: kim_gateway
+    restart: always
+    network_mode: bridge
+    ports:
+      - 8000:8000
+    volumes:
+      - ~/data/:/data/
+    environment:
+      external_ip: 192.168.3.201
+  server:
+    image: kim_server:latest
+    container_name: kim_server
+    restart: always
+    network_mode: bridge
+    ports:
+      - 8005:8005
+    volumes:
+      - ~/data/:/data/
+    environment:
+      external_ip: 192.168.3.201

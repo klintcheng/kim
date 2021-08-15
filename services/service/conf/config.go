@@ -1,9 +1,11 @@
 package conf
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis/v7"
@@ -29,30 +31,46 @@ type Config struct {
 	MessageDb     string   `envconfig:"messageDb"`
 }
 
+func (c Config) String() string {
+	bts, _ := json.Marshal(c)
+	return string(bts)
+}
+
 // Init InitConfig
 func Init(file string) (*Config, error) {
 	viper.SetConfigFile(file)
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("/etc/conf")
 
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("config file not found: %w", err)
+	localIP := kim.GetLocalIP()
+	if os.Getenv("external_ip") != "" {
+		localIP = os.Getenv("external_ip")
+	}
+	var config = Config{
+		ServiceID:     fmt.Sprintf("royal_%s", strings.ReplaceAll(localIP, ".", "")),
+		Listen:        ":8080",
+		PublicAddress: localIP,
+		PublicPort:    8080,
+		ConsulURL:     fmt.Sprintf("%s:8500", localIP),
+		RedisAddrs:    fmt.Sprintf("%s:6379", localIP),
+		BaseDb:        fmt.Sprintf("root:123456@tcp(%s:3306)/kim_base?charset=utf8mb4&parseTime=True&loc=Local", localIP),
+		MessageDb:     fmt.Sprintf("root:123456@tcp(%s:3306)/kim_message?charset=utf8mb4&parseTime=True&loc=Local", localIP),
 	}
 
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, err
+	if err := viper.ReadInConfig(); err != nil {
+		logger.Warn(err)
+	} else {
+		if err := viper.Unmarshal(&config); err != nil {
+			return nil, err
+		}
 	}
 
 	err := envconfig.Process("", &config)
 	if err != nil {
 		return nil, err
 	}
-	if config.PublicAddress == "" {
-		config.PublicAddress = kim.GetLocalIP()
-	}
-	logger.Info(config)
 
+	logger.Info(config)
 	return &config, nil
 }
 
