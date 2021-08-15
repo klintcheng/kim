@@ -5,7 +5,8 @@ services:
     image: dockerklint/kim_royal:latest
     container_name: kim_royal
     restart: always
-    network_mode: bridge
+    networks: 
+      - kimnet
     ports:
       - "8080:8080"
     volumes:
@@ -16,7 +17,8 @@ services:
     image: dockerklint/kim_gateway:latest
     container_name: kim_gateway
     restart: always
-    network_mode: bridge
+    networks: 
+      - kimnet
     ports:
       - "8000:8000"
     volumes:
@@ -27,10 +29,13 @@ services:
     image: dockerklint/kim_server:latest
     container_name: kim_server
     restart: always
-    network_mode: bridge
+    networks: 
+      - kimnet
     ports:
       - "8005:8005"
     volumes:
       - ~/data/kim/:/data/
     environment:
       external_ip: 192.168.3.201
+networks:
+  kimnet: {}
