@@ -6,7 +6,8 @@ services:
     container_name: kim_mysql
     command: --default-authentication-plugin=mysql_native_password
     restart: always
-    network_mode: bridge
+    networks: 
+      - kimnet
     ports:
       - "3306:3306"
     volumes:
@@ -17,7 +18,8 @@ services:
     image: docker.io/library/redis:6.2
     container_name: kim_redis
     command: redis-server
-    network_mode: bridge
+    networks: 
+      - kimnet
     ports:
       - "6379:6379"
     volumes:
@@ -25,15 +27,16 @@ services:
   consul:
     image: docker.io/library/consul:latest
     container_name: kim_consul
-    network_mode: bridge
+    networks: 
+      - kimnet
     ports:
       - '8300:8300'
-      - '8301:8301'
       - '8301:8301/udp'
       - '8500:8500'
-      - '53:53'
       - '53:53/udp'
     command: agent -dev -dns-port=53 -recursor=8.8.8.8 -ui -client=0.0.0.0
     environment:
       CONSUL_BIND_INTERFACE: eth0
       CONSUL_ALLOW_PRIVILEGED_PORTS: 53
+networks:
+  kimnet: {}
