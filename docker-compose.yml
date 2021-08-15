@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   mysql:
-    image: mysql:8.0
+    image: docker.io/library/mysql:8.0
     container_name: kim_mysql
     command: --default-authentication-plugin=mysql_native_password
     restart: always
@@ -14,7 +14,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 123456
   redis:
-    image: redis:6.2
+    image: docker.io/library/redis:6.2
     container_name: kim_redis
     command: redis-server
     network_mode: bridge
@@ -23,7 +23,7 @@ services:
     volumes:
       - ~/data/redis:/data
   consul:
-    image: consul:latest
+    image: docker.io/library/consul:latest
     container_name: kim_consul
     network_mode: bridge
     ports:
