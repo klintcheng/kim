@@ -5,3 +5,4 @@ Tags:
   - server
 ConsulURL: localhost:8500
 RedisAddrs: localhost:6379
+RoyalURL: http://localhost:8080

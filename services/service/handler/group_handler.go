@@ -24,7 +24,7 @@ func (h *ServiceHandler) GroupCreate(c iris.Context) {
 			ID: groupId.Int64(),
 		},
 		App:          app,
-		Group:        groupId.Base32(),
+		Group:        groupId.Base36(),
 		Name:         req.Name,
 		Avatar:       req.Avatar,
 		Owner:        req.Owner,
@@ -37,7 +37,7 @@ func (h *ServiceHandler) GroupCreate(c iris.Context) {
 				ID: h.Idgen.Next().Int64(),
 			},
 			Account: user,
-			Group:   groupId.Base32(),
+			Group:   groupId.Base36(),
 		}
 	}
 
@@ -57,7 +57,7 @@ func (h *ServiceHandler) GroupCreate(c iris.Context) {
 		return
 	}
 	_, _ = c.Negotiate(&rpc.CreateGroupResp{
-		GroupId: groupId.Base32(),
+		GroupId: groupId.Base36(),
 	})
 }
 
@@ -101,7 +101,7 @@ func (h *ServiceHandler) GroupQuit(c iris.Context) {
 }
 
 func (h *ServiceHandler) GroupMembers(c iris.Context) {
-	group := c.Params().Get("group")
+	group := c.Params().Get("id")
 	if group == "" {
 		c.StopWithError(iris.StatusBadRequest, errors.New("group is null"))
 		return
@@ -122,5 +122,32 @@ func (h *ServiceHandler) GroupMembers(c iris.Context) {
 	}
 	_, _ = c.Negotiate(&rpc.GroupMembersResp{
 		Users: users,
+	})
+}
+
+func (h *ServiceHandler) GroupGet(c iris.Context) {
+	groupId := c.Params().Get("id")
+	if groupId == "" {
+		c.StopWithError(iris.StatusBadRequest, errors.New("group is null"))
+		return
+	}
+	id, err := h.Idgen.ParseBase36(groupId)
+	if err != nil {
+		c.StopWithError(iris.StatusBadRequest, errors.New("group is invaild:"+groupId))
+		return
+	}
+	var group database.Group
+	err = h.BaseDb.First(&group, id.Int64()).Error
+	if err != nil {
+		c.StopWithError(iris.StatusInternalServerError, err)
+		return
+	}
+	_, _ = c.Negotiate(&rpc.GetGroupResp{
+		Id:           groupId,
+		Name:         group.Name,
+		Avatar:       group.Avatar,
+		Introduction: group.Introduction,
+		Owner:        group.Owner,
+		CreatedAt:    group.CreatedAt.Unix(),
 	})
 }

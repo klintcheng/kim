@@ -27,6 +27,7 @@ type Config struct {
 	Tags          []string
 	ConsulURL     string
 	RedisAddrs    string
+	RoyalURL      string
 }
 
 func (c Config) String() string {

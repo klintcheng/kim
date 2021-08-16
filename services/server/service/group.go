@@ -15,6 +15,7 @@ type Group interface {
 	Members(app string, req *rpc.GroupMembersReq) (*rpc.GroupMembersResp, error)
 	Join(app string, req *rpc.JoinGroupReq) error
 	Quit(app string, req *rpc.QuitGroupReq) error
+	Detail(app string, req *rpc.GetGroupReq) (*rpc.GetGroupResp, error)
 }
 
 type GroupHttp struct {
@@ -104,6 +105,21 @@ func (g *GroupHttp) Quit(app string, req *rpc.QuitGroupReq) error {
 		return fmt.Errorf("GroupHttp.Quit response.StatusCode() = %d, want 200", response.StatusCode())
 	}
 	return nil
+}
+
+func (g *GroupHttp) Detail(app string, req *rpc.GetGroupReq) (*rpc.GetGroupResp, error) {
+	path := fmt.Sprintf("%s/api/%s/group/%s", g.url, app, req.GroupId)
+	response, err := g.Req().Get(path)
+	if err != nil {
+		return nil, err
+	}
+	if response.StatusCode() != 200 {
+		return nil, fmt.Errorf("GroupHttp.Detail response.StatusCode() = %d, want 200", response.StatusCode())
+	}
+	var resp rpc.GetGroupResp
+	_ = proto.Unmarshal(response.Body(), &resp)
+	logger.Debugf("GroupHttp.Detail resp: %v", &resp)
+	return &resp, nil
 }
 
 func (g *GroupHttp) Req() *resty.Request {

@@ -52,13 +52,19 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		Filename: "./data/server.log",
 	})
 
-	srvRecord := &resty.SRVRecord{
-		Domain:  "consul",
-		Service: wire.SNService,
+	var groupService service.Group
+	var messageService service.Message
+	if config.RoyalURL != "" {
+		groupService = service.NewGroupService(config.RoyalURL)
+		messageService = service.NewMessageService(config.RoyalURL)
+	} else {
+		srvRecord := &resty.SRVRecord{
+			Domain:  "consul",
+			Service: wire.SNService,
+		}
+		groupService = service.NewGroupServiceWithSRV("http", srvRecord)
+		messageService = service.NewMessageServiceWithSRV("http", srvRecord)
 	}
-
-	groupService := service.NewGroupServiceWithSRV("http", srvRecord)
-	messageService := service.NewMessageServiceWithSRV("http", srvRecord)
 
 	r := kim.NewRouter()
 	// login
@@ -75,6 +81,8 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	r.Handle(wire.CommandGroupCreate, groupHandler.DoCreate)
 	r.Handle(wire.CommandGroupJoin, groupHandler.DoJoin)
 	r.Handle(wire.CommandGroupQuit, groupHandler.DoQuit)
+	r.Handle(wire.CommandGroupDetail, groupHandler.DoDetail)
+
 	// offline
 	offlineHandler := handler.NewOfflineHandler(messageService)
 	r.Handle(wire.CommandOfflineIndex, offlineHandler.DoSyncIndex)

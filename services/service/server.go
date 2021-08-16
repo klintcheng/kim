@@ -124,10 +124,11 @@ func newApp(serviceHandler *handler.ServiceHandler) *iris.Application {
 
 	groupAPI := app.Party("/api/:app/group")
 	{
+		groupAPI.Get("/:id", serviceHandler.GroupGet)
 		groupAPI.Post("", serviceHandler.GroupCreate)
 		groupAPI.Post("/member", serviceHandler.GroupJoin)
 		groupAPI.Delete("/member", serviceHandler.GroupQuit)
-		groupAPI.Get("/members/:group", serviceHandler.GroupMembers)
+		groupAPI.Get("/members/:id", serviceHandler.GroupMembers)
 	}
 
 	offlineAPI := app.Party("/api/:app/offline")
