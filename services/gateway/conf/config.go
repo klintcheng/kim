@@ -3,7 +3,6 @@ package conf
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/kelseyhightower/envconfig"
@@ -14,14 +13,14 @@ import (
 
 // Config Config
 type Config struct {
-	ServiceID     string   `envconfig:"serviceId"`
-	ServiceName   string   `envconfig:"serviceName"`
-	Listen        string   `envconfig:"listen"`
-	PublicAddress string   `envconfig:"publicAddress"`
-	PublicPort    int      `envconfig:"publicPort"`
-	Tags          []string `envconfig:"tags"`
-	ConsulURL     string   `envconfig:"consulURL"`
-	AppSecret     string   `envconfig:"appSecret"`
+	ServiceID     string
+	ServiceName   string `default:"gateway"`
+	Listen        string `default:":8000"`
+	PublicAddress string
+	PublicPort    int `default:"8000"`
+	Tags          []string
+	ConsulURL     string
+	AppSecret     string
 }
 
 func (c Config) String() string {
@@ -35,19 +34,7 @@ func Init(file string) (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("/etc/conf")
 
-	localIP := kim.GetLocalIP()
-	if os.Getenv("external_ip") != "" {
-		localIP = os.Getenv("external_ip")
-	}
-	var config = Config{
-		ServiceID:     fmt.Sprintf("gate_%s", strings.ReplaceAll(localIP, ".", "")),
-		ServiceName:   "gateway",
-		Listen:        ":8000",
-		PublicAddress: localIP,
-		PublicPort:    8000,
-		ConsulURL:     fmt.Sprintf("%s:8500", localIP),
-	}
-
+	var config Config
 	if err := viper.ReadInConfig(); err != nil {
 		logger.Warn(err)
 	} else {
@@ -55,12 +42,14 @@ func Init(file string) (*Config, error) {
 			return nil, err
 		}
 	}
-
-	err := envconfig.Process("", &config)
+	err := envconfig.Process("kim", &config)
 	if err != nil {
 		return nil, err
 	}
-
+	if config.ServiceID == "" {
+		localIP := kim.GetLocalIP()
+		config.ServiceID = fmt.Sprintf("gate_%s", strings.ReplaceAll(localIP, ".", ""))
+	}
 	logger.Info(config)
 	return &config, nil
 }

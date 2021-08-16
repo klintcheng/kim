@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,16 +20,16 @@ import (
 
 // Config Config
 type Config struct {
-	ServiceID     string   `envconfig:"serviceId"`
-	NodeID        int64    `envconfig:"nodeId"`
-	Listen        string   `envconfig:"listen"`
-	PublicAddress string   `envconfig:"publicAddress"`
-	PublicPort    int      `envconfig:"publicPort"`
-	Tags          []string `envconfig:"tags"`
-	ConsulURL     string   `envconfig:"consulURL"`
-	RedisAddrs    string   `envconfig:"redisAddrs"`
-	BaseDb        string   `envconfig:"baseDb"`
-	MessageDb     string   `envconfig:"messageDb"`
+	ServiceID     string
+	NodeID        int64
+	Listen        string `default:":8080"`
+	PublicAddress string
+	PublicPort    int `default:"8080"`
+	Tags          []string
+	ConsulURL     string
+	RedisAddrs    string
+	BaseDb        string
+	MessageDb     string
 }
 
 func (c Config) String() string {
@@ -42,21 +43,7 @@ func Init(file string) (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("/etc/conf")
 
-	localIP := kim.GetLocalIP()
-	if os.Getenv("external_ip") != "" {
-		localIP = os.Getenv("external_ip")
-	}
-	var config = Config{
-		ServiceID:     fmt.Sprintf("royal_%s", strings.ReplaceAll(localIP, ".", "")),
-		Listen:        ":8080",
-		PublicAddress: localIP,
-		PublicPort:    8080,
-		ConsulURL:     fmt.Sprintf("%s:8500", localIP),
-		RedisAddrs:    fmt.Sprintf("%s:6379", localIP),
-		BaseDb:        fmt.Sprintf("root:123456@tcp(%s:3306)/kim_base?charset=utf8mb4&parseTime=True&loc=Local", localIP),
-		MessageDb:     fmt.Sprintf("root:123456@tcp(%s:3306)/kim_message?charset=utf8mb4&parseTime=True&loc=Local", localIP),
-	}
-
+	var config Config
 	if err := viper.ReadInConfig(); err != nil {
 		logger.Warn(err)
 	} else {
@@ -64,12 +51,19 @@ func Init(file string) (*Config, error) {
 			return nil, err
 		}
 	}
-
-	err := envconfig.Process("", &config)
+	err := envconfig.Process("kim", &config)
 	if err != nil {
 		return nil, err
 	}
-
+	if config.ServiceID == "" {
+		localIP := kim.GetLocalIP()
+		config.ServiceID = fmt.Sprintf("gate_%s", strings.ReplaceAll(localIP, ".", ""))
+		arr := strings.Split(localIP, ".")
+		if len(arr) == 4 {
+			suffix, _ := strconv.Atoi(arr[3])
+			config.NodeID = int64(suffix)
+		}
+	}
 	logger.Info(config)
 	return &config, nil
 }
