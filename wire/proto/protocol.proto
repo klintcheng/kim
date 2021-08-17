@@ -11,6 +11,7 @@ message LoginReq {
 
 message LoginResp {
     string channelId = 1;
+    string account = 2;
 }
 
 message KickoutNotify {

@@ -46,6 +46,7 @@ func (h *LoginHandler) DoSysLogin(ctx kim.Context) {
 	// 5. 返回一个登陆成功的消息
 	var resp = &pkt.LoginResp{
 		ChannelId: session.ChannelId,
+		Account:   session.Account,
 	}
 	_ = ctx.Resp(pkt.Status_Success, resp)
 }
