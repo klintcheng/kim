@@ -40,6 +40,7 @@ services:
   royal:
     image: docker.io/dockerklint/kim_royal:latest
     container_name: royal
+    restart: always
     networks: 
       - kimnet
     ports:
@@ -55,6 +56,7 @@ services:
   gateway:
     image: docker.io/dockerklint/kim_gateway:latest
     container_name: wgateway
+    restart: always
     networks: 
       - kimnet
     ports:
@@ -67,6 +69,7 @@ services:
   server:
     image: docker.io/dockerklint/kim_server:latest
     container_name: chat
+    restart: always
     networks: 
       - kimnet
     ports:
