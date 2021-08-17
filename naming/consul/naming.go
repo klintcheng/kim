@@ -65,13 +65,13 @@ func (n *Naming) load(name string, waitIndex uint64, tags ...string) ([]kim.Serv
 		return nil, meta, err
 	}
 
-	services := make([]kim.ServiceRegistration, len(catalogServices))
-	for i, s := range catalogServices {
+	services := make([]kim.ServiceRegistration, 0, len(catalogServices))
+	for _, s := range catalogServices {
 		if s.Checks.AggregatedStatus() != api.HealthPassing {
 			logger.Debugf("load service: id:%s name:%s %s:%d Status:%s", s.ServiceID, s.ServiceName, s.ServiceAddress, s.ServicePort, s.Checks.AggregatedStatus())
 			continue
 		}
-		services[i] = &naming.DefaultService{
+		services = append(services, &naming.DefaultService{
 			Id:       s.ServiceID,
 			Name:     s.ServiceName,
 			Address:  s.ServiceAddress,
@@ -79,7 +79,7 @@ func (n *Naming) load(name string, waitIndex uint64, tags ...string) ([]kim.Serv
 			Protocol: s.ServiceMeta[KeyProtocol],
 			Tags:     s.ServiceTags,
 			Meta:     s.ServiceMeta,
-		}
+		})
 	}
 	logger.Debugf("load service: %v, meta:%v", services, meta)
 	return services, meta, nil
