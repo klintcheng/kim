@@ -16,6 +16,7 @@ services:
       KIM_REDISADDRS: redis:6379
       KIM_BASEDB: root:123456@tcp(mysql:3306)/kim_base?charset=utf8mb4&parseTime=True&loc=Local
       KIM_MESSAGEDB: root:123456@tcp(mysql:3306)/kim_message?charset=utf8mb4&parseTime=True&loc=Local
+      KIM_LOGLEVEL: DEBUG
   gateway:
     image: docker.io/dockerklint/kim_gateway:latest
     container_name: wgateway
@@ -29,6 +30,7 @@ services:
     environment:
       KIM_PUBLICADDRESS: gateway
       KIM_CONSULURL: consul:8500
+      KIM_LOGLEVEL: DEBUG
   server:
     image: docker.io/dockerklint/kim_server:latest
     container_name: chat
@@ -43,6 +45,8 @@ services:
       KIM_PUBLICADDRESS: server
       KIM_CONSULURL: consul:8500
       KIM_REDISADDRS: redis:6379
+      KIM_LOGLEVEL: DEBUG
+      KIM_ROYALURL: http://royal:8080
     dns: consul
 networks:
   kimnet: {}

@@ -30,6 +30,7 @@ type Config struct {
 	RedisAddrs    string
 	BaseDb        string
 	MessageDb     string
+	LogLevel      string `default:"INFO"`
 }
 
 func (c Config) String() string {

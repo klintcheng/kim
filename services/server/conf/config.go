@@ -28,6 +28,7 @@ type Config struct {
 	ConsulURL     string
 	RedisAddrs    string
 	RoyalURL      string
+	LogLevel      string `default:"INFO"`
 }
 
 func (c Config) String() string {

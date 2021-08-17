@@ -49,7 +49,7 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		return err
 	}
 	_ = logger.Init(logger.Settings{
-		Level:    "info",
+		Level:    config.LogLevel,
 		Filename: "./data/server.log",
 	})
 

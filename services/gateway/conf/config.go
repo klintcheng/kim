@@ -21,6 +21,7 @@ type Config struct {
 	Tags          []string
 	ConsulURL     string
 	AppSecret     string
+	LogLevel      string `default:"INFO"`
 }
 
 func (c Config) String() string {
