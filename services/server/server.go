@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/klintcheng/kim"
@@ -54,7 +55,7 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 
 	var groupService service.Group
 	var messageService service.Message
-	if config.RoyalURL != "" {
+	if strings.TrimSpace(config.RoyalURL) != "" {
 		groupService = service.NewGroupService(config.RoyalURL)
 		messageService = service.NewMessageService(config.RoyalURL)
 	} else {

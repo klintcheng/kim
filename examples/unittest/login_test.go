@@ -10,11 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// const wsurl = "ws://119.3.4.216:8000"
+const wsurl = "ws://localhost:8000"
+
 func login(account string) (kim.Client, error) {
 	cli := websocket.NewClient(account, "unittest", websocket.ClientOptions{})
 
 	cli.SetDialer(&dialer.ClientDialer{})
-	err := cli.Connect("ws://localhost:8000")
+	err := cli.Connect(wsurl)
 	if err != nil {
 		return nil, err
 	}

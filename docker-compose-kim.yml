@@ -1,42 +1,5 @@
 version: '3.1'
 services:
-  mysql:
-    image: docker.io/library/mysql:8.0
-    container_name: mysql_im
-    command: --default-authentication-plugin=mysql_native_password
-    restart: always
-    networks: 
-      - kimnet
-    ports:
-      - "3306:3306"
-    volumes:
-      - ~/data/mysql:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: 123456
-  redis:
-    image: docker.io/library/redis:6.2
-    container_name: redis_im
-    command: redis-server
-    networks: 
-      - kimnet
-    ports:
-      - "6379:6379"
-    volumes:
-      - ~/data/redis:/data
-  consul:
-    image: docker.io/library/consul:latest
-    container_name: consul_im
-    networks: 
-      - kimnet
-    ports:
-      - '8300:8300'
-      - '8301:8301/udp'
-      - '8500:8500'
-      - '53:53/udp'
-    command: agent -dev -dns-port=53 -recursor=8.8.8.8 -ui -client=0.0.0.0
-    environment:
-      CONSUL_BIND_INTERFACE: eth0
-      CONSUL_ALLOW_PRIVILEGED_PORTS: 53
   royal:
     image: docker.io/dockerklint/kim_royal:latest
     container_name: royal
