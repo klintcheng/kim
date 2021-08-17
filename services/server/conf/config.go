@@ -55,7 +55,7 @@ func Init(file string) (*Config, error) {
 	}
 	if config.ServiceID == "" {
 		localIP := kim.GetLocalIP()
-		config.ServiceID = fmt.Sprintf("gate_%s", strings.ReplaceAll(localIP, ".", ""))
+		config.ServiceID = fmt.Sprintf("server_%s", strings.ReplaceAll(localIP, ".", ""))
 	}
 	logger.Info(config)
 	return &config, nil

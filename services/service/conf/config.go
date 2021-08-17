@@ -57,7 +57,7 @@ func Init(file string) (*Config, error) {
 	}
 	if config.ServiceID == "" {
 		localIP := kim.GetLocalIP()
-		config.ServiceID = fmt.Sprintf("gate_%s", strings.ReplaceAll(localIP, ".", ""))
+		config.ServiceID = fmt.Sprintf("royal_%s", strings.ReplaceAll(localIP, ".", ""))
 		arr := strings.Split(localIP, ".")
 		if len(arr) == 4 {
 			suffix, _ := strconv.Atoi(arr[3])
