@@ -1,0 +1,52 @@
+version: '3.1'
+services:
+  royal:
+    image: docker.io/dockerklint/kim_royal:latest
+    container_name: royal
+    restart: always
+    networks: 
+      - kimnet
+    ports:
+      - "8080:8080"
+    volumes:
+      - ~/data/kim/:/data/
+    environment:
+      KIM_PUBLICADDRESS: royal
+      KIM_CONSULURL: consul:8500
+      KIM_REDISADDRS: redis:6379
+      KIM_BASEDB: root:123456@tcp(mysql:3306)/kim_base?charset=utf8mb4&parseTime=True&loc=Local
+      KIM_MESSAGEDB: root:123456@tcp(mysql:3306)/kim_message?charset=utf8mb4&parseTime=True&loc=Local
+      KIM_LOGLEVEL: DEBUG
+  gateway:
+    image: docker.io/dockerklint/kim_gateway:latest
+    container_name: wgateway
+    restart: always
+    networks: 
+      - kimnet
+    ports:
+      - "8000:8000"
+    volumes:
+      - ~/data/kim/:/data/
+    environment:
+      KIM_PUBLICADDRESS: gateway
+      KIM_CONSULURL: consul:8500
+      KIM_LOGLEVEL: DEBUG
+  server:
+    image: docker.io/dockerklint/kim_server:latest
+    container_name: chat
+    restart: always
+    networks: 
+      - kimnet
+    ports:
+      - "8005:8005"
+    volumes:
+      - ~/data/kim/:/data/
+    environment:
+      KIM_PUBLICADDRESS: server
+      KIM_CONSULURL: consul:8500
+      KIM_REDISADDRS: redis:6379
+      KIM_LOGLEVEL: DEBUG
+      KIM_ROYALURL: http://royal:8080
+    dns: consul
+networks:
+  kimnet: {}

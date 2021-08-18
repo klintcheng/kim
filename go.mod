@@ -10,7 +10,7 @@ require (
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/gobwas/ws v1.0.4
 	github.com/golang/mock v1.6.0
-	github.com/golang/protobuf v1.4.3 // indirect
+	github.com/golang/protobuf v1.4.3
 	github.com/hashicorp/consul/api v1.8.1
 	github.com/kataras/iris/v12 v12.2.0-alpha2.0.20210705170737-afb15b860124
 	github.com/kelseyhightower/envconfig v1.4.0

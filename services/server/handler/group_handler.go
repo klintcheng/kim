@@ -91,3 +91,42 @@ func (h *GroupHandler) DoQuit(ctx kim.Context) {
 	}
 	_ = ctx.Resp(pkt.Status_Success, nil)
 }
+
+func (h *GroupHandler) DoDetail(ctx kim.Context) {
+	var req pkt.GroupGetReq
+	if err := ctx.ReadBody(&req); err != nil {
+		_ = ctx.RespWithError(pkt.Status_InvalidPacketBody, err)
+		return
+	}
+	resp, err := h.groupService.Detail(ctx.Session().GetApp(), &rpc.GetGroupReq{
+		GroupId: req.GetGroupId(),
+	})
+	if err != nil {
+		_ = ctx.RespWithError(pkt.Status_SystemException, err)
+		return
+	}
+	membersResp, err := h.groupService.Members(ctx.Session().GetApp(), &rpc.GroupMembersReq{
+		GroupId: req.GetGroupId(),
+	})
+	if err != nil {
+		_ = ctx.RespWithError(pkt.Status_SystemException, err)
+		return
+	}
+	var members = make([]*pkt.Member, len(membersResp.GetUsers()))
+	for i, m := range membersResp.GetUsers() {
+		members[i] = &pkt.Member{
+			Account:  m.Account,
+			Alias:    m.Alias,
+			JoinTime: m.JoinTime,
+			Avatar:   m.Avatar,
+		}
+	}
+	_ = ctx.Resp(pkt.Status_Success, &pkt.GroupGetResp{
+		Id:           resp.Id,
+		Name:         resp.Name,
+		Introduction: resp.Introduction,
+		Avatar:       resp.Avatar,
+		Owner:        resp.Owner,
+		Members:      members,
+	})
+}

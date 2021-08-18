@@ -32,7 +32,7 @@ func NewServerStartCmd(ctx context.Context, version string) *cobra.Command {
 			return RunServerStart(ctx, opts, version)
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&opts.config, "config", "c", "./service/conf.yaml", "Config file")
+	cmd.PersistentFlags().StringVarP(&opts.config, "config", "c", "conf.yaml", "Config file")
 	return cmd
 }
 
@@ -43,7 +43,8 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		return err
 	}
 	_ = logger.Init(logger.Settings{
-		Level: "info",
+		Level:    config.LogLevel,
+		Filename: "./data/royal.log",
 	})
 
 	// database.Init
@@ -123,10 +124,11 @@ func newApp(serviceHandler *handler.ServiceHandler) *iris.Application {
 
 	groupAPI := app.Party("/api/:app/group")
 	{
+		groupAPI.Get("/:id", serviceHandler.GroupGet)
 		groupAPI.Post("", serviceHandler.GroupCreate)
 		groupAPI.Post("/member", serviceHandler.GroupJoin)
 		groupAPI.Delete("/member", serviceHandler.GroupQuit)
-		groupAPI.Get("/members/:group", serviceHandler.GroupMembers)
+		groupAPI.Get("/members/:id", serviceHandler.GroupMembers)
 	}
 
 	offlineAPI := app.Party("/api/:app/offline")

@@ -36,7 +36,7 @@ func NewServerStartCmd(ctx context.Context, version string) *cobra.Command {
 			return RunServerStart(ctx, opts, version)
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&opts.config, "config", "c", "./gateway/conf.yaml", "Config file")
+	cmd.PersistentFlags().StringVarP(&opts.config, "config", "c", "conf.yaml", "Config file")
 	cmd.PersistentFlags().StringVarP(&opts.protocol, "protocol", "p", "ws", "protocol of ws or tcp")
 	return cmd
 }
@@ -48,7 +48,8 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		return err
 	}
 	_ = logger.Init(logger.Settings{
-		Level: "info",
+		Level:    "info",
+		Filename: "./data/gateway.log",
 	})
 
 	handler := &serv.Handler{
