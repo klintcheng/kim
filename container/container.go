@@ -342,7 +342,7 @@ func readLoop(cli kim.Client) error {
 func pushMessage(packet *pkt.LogicPkt) error {
 	server, _ := packet.GetMeta(wire.MetaDestServer)
 	if server != c.Srv.ServiceID() {
-		return fmt.Errorf("dest_server is not incorrect, %s != %s", server, c.Srv.ServiceID())
+		return fmt.Errorf("dest_server is incorrect, %s != %s", server, c.Srv.ServiceID())
 	}
 	channels, ok := packet.GetMeta(wire.MetaDestChannels)
 	if !ok {
