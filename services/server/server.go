@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -103,6 +104,9 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		Port:     config.PublicPort,
 		Protocol: string(wire.ProtocolTCP),
 		Tags:     config.Tags,
+		Meta: map[string]string{
+			consul.KeyHealthURL: fmt.Sprintf("http://%s:%d/health", config.PublicAddress, config.MonitorPort),
+		},
 	}
 	srv := tcp.NewServer(config.Listen, service)
 
@@ -114,6 +118,7 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	if err := container.Init(srv); err != nil {
 		return err
 	}
+	container.EnableMonitor(fmt.Sprintf(":%d", config.MonitorPort))
 
 	ns, err := consul.NewNaming(config.ConsulURL)
 	if err != nil {

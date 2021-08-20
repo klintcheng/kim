@@ -20,6 +20,7 @@ type Config struct {
 	PublicPort    int `default:"8000"`
 	Tags          []string
 	ConsulURL     string
+	MonitorPort   int `default:"8001"`
 	AppSecret     string
 	LogLevel      string `default:"INFO"`
 }
@@ -50,6 +51,9 @@ func Init(file string) (*Config, error) {
 	if config.ServiceID == "" {
 		localIP := kim.GetLocalIP()
 		config.ServiceID = fmt.Sprintf("gate_%s", strings.ReplaceAll(localIP, ".", ""))
+	}
+	if config.PublicAddress == "" {
+		config.PublicAddress = kim.GetLocalIP()
 	}
 	logger.Info(config)
 	return &config, nil

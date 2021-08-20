@@ -22,6 +22,7 @@ type Server struct {
 type Config struct {
 	ServiceID     string
 	Listen        string `default:":8005"`
+	MonitorPort   int    `default:"8006"`
 	PublicAddress string
 	PublicPort    int `default:"8005"`
 	Tags          []string
@@ -57,6 +58,9 @@ func Init(file string) (*Config, error) {
 	if config.ServiceID == "" {
 		localIP := kim.GetLocalIP()
 		config.ServiceID = fmt.Sprintf("server_%s", strings.ReplaceAll(localIP, ".", ""))
+	}
+	if config.PublicAddress == "" {
+		config.PublicAddress = kim.GetLocalIP()
 	}
 	logger.Info(config)
 	return &config, nil

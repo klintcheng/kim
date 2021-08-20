@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -47,6 +48,7 @@ type Container struct {
 	selector   Selector
 	dialer     kim.Dialer
 	deps       map[string]struct{}
+	monitor    sync.Once
 }
 
 var log = logger.WithField("module", "container")
@@ -86,8 +88,15 @@ func SetDialer(dialer kim.Dialer) {
 }
 
 // EnableMonitor start
-func EnableMonitor(listen string) error {
-	return nil
+func EnableMonitor(listen string) {
+	c.monitor.Do(func() {
+		go func() {
+			http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+				_, _ = w.Write([]byte("ok"))
+			})
+			_ = http.ListenAndServe(listen, nil)
+		}()
+	})
 }
 
 // SetSelector set a default selector
@@ -342,7 +351,7 @@ func readLoop(cli kim.Client) error {
 func pushMessage(packet *pkt.LogicPkt) error {
 	server, _ := packet.GetMeta(wire.MetaDestServer)
 	if server != c.Srv.ServiceID() {
-		return fmt.Errorf("dest_server is not incorrect, %s != %s", server, c.Srv.ServiceID())
+		return fmt.Errorf("dest_server is incorrect, %s != %s", server, c.Srv.ServiceID())
 	}
 	channels, ok := packet.GetMeta(wire.MetaDestChannels)
 	if !ok {

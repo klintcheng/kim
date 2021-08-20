@@ -2,6 +2,8 @@ package gateway
 
 import (
 	"context"
+	"fmt"
+	_ "net/http/pprof"
 	"time"
 
 	"github.com/klintcheng/kim"
@@ -65,6 +67,9 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		Port:     config.PublicPort,
 		Protocol: opts.protocol,
 		Tags:     config.Tags,
+		Meta: map[string]string{
+			consul.KeyHealthURL: fmt.Sprintf("http://%s:%d/health", config.PublicAddress, config.MonitorPort),
+		},
 	}
 
 	if opts.protocol == "ws" {
@@ -79,13 +84,13 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	srv.SetStateListener(handler)
 
 	_ = container.Init(srv, wire.SNChat, wire.SNLogin)
+	container.EnableMonitor(fmt.Sprintf(":%d", config.MonitorPort))
 
 	ns, err := consul.NewNaming(config.ConsulURL)
 	if err != nil {
 		return err
 	}
 	container.SetServiceNaming(ns)
-
 	// set a dialer
 	container.SetDialer(serv.NewDialer(config.ServiceID))
 

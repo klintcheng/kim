@@ -1,5 +1,6 @@
 ServiceID: chat01
 Listen: ":8005"
+MonitorPort: 8006
 PublicPort: 8005
 Tags:
   - server
