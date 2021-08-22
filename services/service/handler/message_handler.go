@@ -163,7 +163,7 @@ func (h *ServiceHandler) GetOfflineMessageIndex(c iris.Context) {
 
 	var indexes []*rpc.MessageIndex
 	tx := h.MessageDb.Model(&database.MessageIndex{}).Select("send_time", "account_b", "direction", "message_id", "group")
-	err = tx.Where("account_a=? and send_time>?", req.Account, start).Order("send_time asc").Limit(wire.OfflineSyncIndexCount).Find(&indexes).Error
+	err = tx.Where("account_a=? and send_time>? and direction=?", req.Account, start, 0).Order("send_time asc").Limit(wire.OfflineSyncIndexCount).Find(&indexes).Error
 	if err != nil {
 		c.StopWithError(iris.StatusInternalServerError, err)
 		return
