@@ -41,7 +41,7 @@ func (r *Router) Handle(commond string, handlers ...HandlerFunc) {
 }
 
 // Serve a packet from client
-func (r *Router) Serve(packet *pkt.LogicPkt, dispather Dispather, cache SessionStorage, session Session) error {
+func (r *Router) Serve(packet *pkt.LogicPkt, dispather Dispatcher, cache SessionStorage, session Session) error {
 	if dispather == nil {
 		return fmt.Errorf("dispather is nil")
 	}
@@ -51,7 +51,7 @@ func (r *Router) Serve(packet *pkt.LogicPkt, dispather Dispather, cache SessionS
 	ctx := r.pool.Get().(*ContextImpl)
 	ctx.reset()
 	ctx.request = packet
-	ctx.Dispather = dispather
+	ctx.Dispatcher = dispather
 	ctx.SessionStorage = cache
 	ctx.session = session
 

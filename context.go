@@ -23,7 +23,7 @@ type Session interface {
 }
 
 type Context interface {
-	Dispather
+	Dispatcher
 	SessionStorage
 	Header() *pkt.Header
 	ReadBody(val proto.Message) error
@@ -43,7 +43,7 @@ type HandlersChain []HandlerFunc
 // ContextImpl is the most important part of kim
 type ContextImpl struct {
 	sync.Mutex
-	Dispather
+	Dispatcher
 	SessionStorage
 
 	handlers HandlersChain
