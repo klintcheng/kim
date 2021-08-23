@@ -242,10 +242,10 @@ func connectToService(serviceName string) error {
 			}
 			log.WithField("func", "connectToService").Infof("Watch a new service: %v", service)
 			service.GetMeta()[KeyServiceState] = StateYoung
-			go func() {
+			go func(service kim.ServiceRegistration) {
 				time.Sleep(delay)
 				service.GetMeta()[KeyServiceState] = StateAdult
-			}()
+			}(service)
 
 			_, err := buildClient(clients, service)
 			if err != nil {
