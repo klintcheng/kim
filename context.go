@@ -31,6 +31,7 @@ type Context interface {
 	RespWithError(status pkt.Status, err error) error
 	Resp(status pkt.Status, body proto.Message) error
 	Dispatch(body proto.Message, recvs ...*Location) error
+	Next()
 }
 
 // HandlerFunc defines the handler used
@@ -61,9 +62,12 @@ func (c *ContextImpl) Next() {
 		return
 	}
 	f := c.handlers[c.index]
-
-	f(c)
 	c.index++
+	if f == nil {
+		logger.Warn("arrived unknown HandlerFunc")
+		return
+	}
+	f(c)
 }
 
 // RespWithError response with error

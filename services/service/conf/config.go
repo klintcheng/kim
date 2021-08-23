@@ -65,6 +65,9 @@ func Init(file string) (*Config, error) {
 			config.NodeID = int64(suffix)
 		}
 	}
+	if config.PublicAddress == "" {
+		config.PublicAddress = kim.GetLocalIP()
+	}
 	logger.Info(config)
 	return &config, nil
 }

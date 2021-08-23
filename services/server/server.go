@@ -9,6 +9,7 @@ import (
 	"github.com/klintcheng/kim"
 	"github.com/klintcheng/kim/container"
 	"github.com/klintcheng/kim/logger"
+	"github.com/klintcheng/kim/middleware"
 	"github.com/klintcheng/kim/naming"
 	"github.com/klintcheng/kim/naming/consul"
 	"github.com/klintcheng/kim/services/server/conf"
@@ -69,9 +70,10 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	}
 
 	r := kim.NewRouter()
+
 	// login
 	loginHandler := handler.NewLoginHandler()
-	r.Handle(wire.CommandLoginSignIn, loginHandler.DoSysLogin)
+	r.Handle(wire.CommandLoginSignIn, middleware.Recover(), loginHandler.DoSysLogin)
 	r.Handle(wire.CommandLoginSignOut, loginHandler.DoSysLogout)
 	// talk
 	chatHandler := handler.NewChatHandler(messageService, groupService)
