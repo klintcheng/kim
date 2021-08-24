@@ -20,16 +20,16 @@ var log = logger.WithFields(logger.Fields{
 
 // ServHandler ServHandler
 type ServHandler struct {
-	r         *kim.Router
-	cache     kim.SessionStorage
-	dispather *ServerDispather
+	r          *kim.Router
+	cache      kim.SessionStorage
+	dispatcher *ServerDispather
 }
 
 func NewServHandler(r *kim.Router, cache kim.SessionStorage) *ServHandler {
 	return &ServHandler{
-		r:         r,
-		dispather: &ServerDispather{},
-		cache:     cache,
+		r:          r,
+		dispatcher: &ServerDispather{},
+		cache:      cache,
 	}
 }
 
@@ -78,7 +78,7 @@ func (h *ServHandler) Receive(ag kim.Agent, payload []byte) {
 		}
 	}
 	log.Debugf("recv a message from %s  %s", session, &packet.Header)
-	err = h.r.Serve(packet, h.dispather, h.cache, session)
+	err = h.r.Serve(packet, h.dispatcher, h.cache, session)
 	if err != nil {
 		log.Warn(err)
 	}
