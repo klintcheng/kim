@@ -64,7 +64,7 @@ func (h *GroupHandler) DoJoin(ctx kim.Context) {
 		return
 	}
 	err := h.groupService.Join(ctx.Session().GetApp(), &rpc.JoinGroupReq{
-		Account: ctx.Session().GetAccount(),
+		Account: req.Account,
 		GroupId: req.GetGroupId(),
 	})
 	if err != nil {
@@ -82,7 +82,7 @@ func (h *GroupHandler) DoQuit(ctx kim.Context) {
 		return
 	}
 	err := h.groupService.Quit(ctx.Session().GetApp(), &rpc.QuitGroupReq{
-		Account: ctx.Session().GetAccount(),
+		Account: req.Account,
 		GroupId: req.GetGroupId(),
 	})
 	if err != nil {
