@@ -70,10 +70,11 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	}
 
 	r := kim.NewRouter()
+	r.Use(middleware.Recover())
 
 	// login
 	loginHandler := handler.NewLoginHandler()
-	r.Handle(wire.CommandLoginSignIn, middleware.Recover(), loginHandler.DoSysLogin)
+	r.Handle(wire.CommandLoginSignIn, loginHandler.DoSysLogin)
 	r.Handle(wire.CommandLoginSignOut, loginHandler.DoSysLogout)
 	// talk
 	chatHandler := handler.NewChatHandler(messageService, groupService)

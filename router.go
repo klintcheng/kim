@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/klintcheng/kim/logger"
 	"github.com/klintcheng/kim/wire/pkt"
 )
 
@@ -68,7 +67,6 @@ func (r *Router) serveContext(ctx *ContextImpl) {
 		ctx.Next()
 		return
 	}
-	logger.Info("---- ", chain)
 	ctx.handlers = chain
 	ctx.Next()
 }
