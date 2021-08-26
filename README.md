@@ -4,8 +4,9 @@ King IM CLoud
 
 ## 简介
 
-    kim 是一个高性能分式式通信架构。 
+    kim 是一个高性能分布式即时通信系统。 
 
+![structure.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2633b07fd1a144d685ceed9be5f64911~tplv-k3u1fbpfcp-watermark.image)
 
 ## 环境准备
 
