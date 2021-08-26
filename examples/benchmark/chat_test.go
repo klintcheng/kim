@@ -2,6 +2,7 @@ package benchmark
 
 import (
 	"bytes"
+	"fmt"
 	"runtime"
 	"sync"
 	"testing"
@@ -20,7 +21,7 @@ func Benchmark_Usertalk(b *testing.B) {
 
 	offline := true
 
-	if offline {
+	if !offline {
 		cli2, err := dialer.Login(wsurl, "test2")
 		assert.Nil(b, err)
 
@@ -69,13 +70,18 @@ func Benchmark_Usertalk(b *testing.B) {
 func Benchmark_grouptalk(t *testing.B) {
 	cli1, err := dialer.Login(wsurl, "test1")
 	assert.Nil(t, err)
-
+	memberNums := 100
+	var members = make([]string, memberNums)
+	for i := 0; i < memberNums; i++ {
+		members[i] = fmt.Sprintf("test%d", i+1)
+	}
 	// 创建群
 	p := pkt.New(wire.CommandGroupCreate)
+
 	p.WriteBody(&pkt.GroupCreateReq{
 		Name:    "group1",
 		Owner:   "test1",
-		Members: []string{"test1", "test2", "test3", "test4", "test5"},
+		Members: members,
 	})
 	err = cli1.Send(pkt.Marshal(p))
 	assert.Nil(t, err)
@@ -95,11 +101,20 @@ func Benchmark_grouptalk(t *testing.B) {
 	if group == "" {
 		return
 	}
-	// 登录
-	cli2, err := dialer.Login(wsurl, "test2")
-	assert.Nil(t, err)
-	cli3, err := dialer.Login(wsurl, "test3")
-	assert.Nil(t, err)
+
+	onlines := memberNums / 2
+	for i := onlines; i < memberNums; i++ {
+		clix, err := dialer.Login(wsurl, fmt.Sprintf("test%d", i+1))
+		assert.Nil(t, err)
+		go func(cli kim.Client) {
+			for {
+				_, err := cli.Read()
+				if err != nil {
+					return
+				}
+			}
+		}(clix)
+	}
 	t1 := time.Now()
 
 	var lock sync.Mutex
@@ -108,11 +123,6 @@ func Benchmark_grouptalk(t *testing.B) {
 	t.ResetTimer()
 	t.Logf("cpu %d", runtime.NumCPU())
 
-	go func() {
-		for {
-			_, _ = cli1.Read()
-		}
-	}()
 	t.RunParallel(func(p *testing.PB) {
 		for p.Next() {
 			// 发送消息
@@ -124,23 +134,8 @@ func Benchmark_grouptalk(t *testing.B) {
 			assert.Nil(t, err)
 			// 读取消息
 			lock.Lock()
-			notify1, _ := cli2.Read()
-			notify2, _ := cli3.Read()
+			_, _ = cli1.Read()
 			lock.Unlock()
-
-			n1, _ := pkt.MustReadLogicPkt(bytes.NewBuffer(notify1.GetPayload()))
-			assert.Equal(t, wire.CommandChatGroupTalk, n1.GetCommand())
-			var notify pkt.MessagePush
-			_ = n1.ReadBody(&notify)
-			assert.Equal(t, "hellogroup", notify.Body)
-			assert.Equal(t, int32(1), notify.Type)
-			assert.Empty(t, notify.Extra)
-			assert.Greater(t, notify.SendTime, t1.UnixNano())
-			assert.Greater(t, notify.MessageId, int64(10000))
-
-			n2, _ := pkt.MustReadLogicPkt(bytes.NewBuffer(notify2.GetPayload()))
-			_ = n2.ReadBody(&notify)
-			assert.Equal(t, "hellogroup", notify.Body)
 		}
 	})
 

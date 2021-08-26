@@ -21,7 +21,6 @@ type ClientDialer struct {
 }
 
 func (d *ClientDialer) DialAndHandshake(ctx kim.DialerContext) (net.Conn, error) {
-	logger.Info("DialAndHandshake called")
 	// 1. 拨号
 	conn, _, _, err := ws.Dial(context.TODO(), ctx.Address)
 	if err != nil {
