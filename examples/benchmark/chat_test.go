@@ -8,19 +8,20 @@ import (
 	"time"
 
 	"github.com/klintcheng/kim"
+	"github.com/klintcheng/kim/examples/dialer"
 	"github.com/klintcheng/kim/wire"
 	"github.com/klintcheng/kim/wire/pkt"
 	"github.com/stretchr/testify/assert"
 )
 
 func Benchmark_Usertalk(b *testing.B) {
-	cli1, err := login("test1")
+	cli1, err := dialer.Login(wsurl, "test1")
 	assert.Nil(b, err)
 
 	offline := true
 
 	if offline {
-		cli2, err := login("test2")
+		cli2, err := dialer.Login(wsurl, "test2")
 		assert.Nil(b, err)
 
 		go func() {
@@ -66,7 +67,7 @@ func Benchmark_Usertalk(b *testing.B) {
 }
 
 func Benchmark_grouptalk(t *testing.B) {
-	cli1, err := login("test1")
+	cli1, err := dialer.Login(wsurl, "test1")
 	assert.Nil(t, err)
 
 	// 创建群
@@ -95,9 +96,9 @@ func Benchmark_grouptalk(t *testing.B) {
 		return
 	}
 	// 登录
-	cli2, err := login("test2")
+	cli2, err := dialer.Login(wsurl, "test2")
 	assert.Nil(t, err)
-	cli3, err := login("test3")
+	cli3, err := dialer.Login(wsurl, "test3")
 	assert.Nil(t, err)
 	t1 := time.Now()
 

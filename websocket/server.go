@@ -75,7 +75,6 @@ func (s *Server) Start() error {
 
 		// step 2 包装conn
 		conn := NewConn(rawconn)
-
 		// step 3
 		id, err := s.Accept(conn, s.options.loginwait)
 		if err != nil {
@@ -110,7 +109,6 @@ func (s *Server) Start() error {
 			}
 			ch.Close()
 		}(channel)
-
 	})
 	log.Infoln("started")
 	return http.ListenAndServe(s.listen, mux)
