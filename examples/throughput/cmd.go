@@ -4,15 +4,17 @@ import (
 	"context"
 	"runtime"
 
+	"github.com/klintcheng/kim/wire/token"
 	"github.com/spf13/cobra"
 )
 
 // StartOptions StartOptions
 type StartOptions struct {
-	addr    string
-	chat    string
-	count   int
-	offline bool
+	addr      string
+	appSecret string
+	chat      string
+	count     int
+	offline   bool
 }
 
 // NewCmd NewCmd
@@ -27,6 +29,7 @@ func NewBenchmarkCmd(ctx context.Context) *cobra.Command {
 		},
 	}
 	cmd.PersistentFlags().StringVarP(&opts.addr, "address", "a", "ws://localhost:8000", "server address")
+	cmd.PersistentFlags().StringVarP(&opts.appSecret, "appSecret", "s", token.DefaultSecret, "app secret")
 	cmd.PersistentFlags().StringVarP(&opts.chat, "chattype", "c", "user", "user or group")
 	cmd.PersistentFlags().IntVarP(&opts.count, "number", "n", 100, "message number")
 	cmd.PersistentFlags().BoolVarP(&opts.offline, "offline", "o", true, "receiver offline")
@@ -36,7 +39,7 @@ func NewBenchmarkCmd(ctx context.Context) *cobra.Command {
 func runcli(ctx context.Context, opts *StartOptions) error {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if opts.chat == "user" {
-		err := usertalk(opts.addr, opts.count, opts.offline)
+		err := usertalk(opts.addr, opts.appSecret, opts.count, opts.offline)
 		if err != nil {
 			return err
 		}

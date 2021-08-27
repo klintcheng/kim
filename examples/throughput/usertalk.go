@@ -9,8 +9,8 @@ import (
 	"github.com/klintcheng/kim/wire/pkt"
 )
 
-func usertalk(wsurl string, count int, offline bool) error {
-	cli1, err := dialer.Login(wsurl, "test1")
+func usertalk(wsurl, appSecret string, count int, offline bool) error {
+	cli1, err := dialer.Login(wsurl, "test1", appSecret)
 	if err != nil {
 		return err
 	}
