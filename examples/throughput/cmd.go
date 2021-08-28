@@ -2,6 +2,7 @@ package throughput
 
 import (
 	"context"
+	"time"
 
 	"github.com/klintcheng/kim/wire/token"
 	"github.com/spf13/cobra"
@@ -54,19 +55,24 @@ func NewUserTalkCmd(opts *Options) *cobra.Command {
 	return cmd
 }
 
+type LoginOptions struct {
+	keep time.Duration
+}
+
 func NewLoginCmd(opts *Options) *cobra.Command {
+	var options = &LoginOptions{}
 	cmd := &cobra.Command{
 		Use:   "login",
 		Short: "lo",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := login(opts.Addr, opts.AppSecret, opts.Count)
+			err := login(opts.Addr, opts.AppSecret, opts.Count, options.keep)
 			if err != nil {
 				return err
 			}
 			return nil
 		},
 	}
-
+	cmd.PersistentFlags().DurationVarP(&options.keep, "keep", "k", time.Second*5, "the duration of keeping the client connection")
 	return cmd
 }
 
