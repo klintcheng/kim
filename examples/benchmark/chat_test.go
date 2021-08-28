@@ -103,8 +103,8 @@ func Benchmark_grouptalk(t *testing.B) {
 	}
 
 	onlines := memberNums / 2
-	for i := onlines; i < memberNums; i++ {
-		clix, err := dialer.Login(wsurl, fmt.Sprintf("test%d", i+1))
+	for i := 1; i < onlines; i++ {
+		clix, err := dialer.Login(wsurl, fmt.Sprintf("test%d", i))
 		assert.Nil(t, err)
 		go func(cli kim.Client) {
 			for {

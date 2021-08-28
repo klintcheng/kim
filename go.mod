@@ -19,6 +19,7 @@ require (
 	github.com/lestrrat-go/strftime v1.0.4 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
+	github.com/panjf2000/ants/v2 v2.4.6 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/segmentio/ksuid v1.0.3

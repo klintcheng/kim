@@ -2,47 +2,95 @@ package throughput
 
 import (
 	"context"
-	"runtime"
 
 	"github.com/klintcheng/kim/wire/token"
 	"github.com/spf13/cobra"
 )
 
-// StartOptions StartOptions
-type StartOptions struct {
-	addr      string
-	appSecret string
-	chat      string
-	count     int
-	offline   bool
+// DefaultOptions DefaultOptions
+type Options struct {
+	Addr      string
+	AppSecret string
+	Count     int
 }
 
 // NewCmd NewCmd
 func NewBenchmarkCmd(ctx context.Context) *cobra.Command {
-	opts := &StartOptions{}
-
 	cmd := &cobra.Command{
 		Use:   "benchmark",
 		Short: "start client",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runcli(ctx, opts)
-		},
 	}
-	cmd.PersistentFlags().StringVarP(&opts.addr, "address", "a", "ws://localhost:8000", "server address")
-	cmd.PersistentFlags().StringVarP(&opts.appSecret, "appSecret", "s", token.DefaultSecret, "app secret")
-	cmd.PersistentFlags().StringVarP(&opts.chat, "chattype", "c", "user", "user or group")
-	cmd.PersistentFlags().IntVarP(&opts.count, "number", "n", 100, "message number")
-	cmd.PersistentFlags().BoolVarP(&opts.offline, "offline", "o", true, "receiver offline")
+	var opts = &Options{}
+	cmd.PersistentFlags().StringVarP(&opts.Addr, "address", "a", "ws://localhost:8000", "server address")
+	cmd.PersistentFlags().StringVarP(&opts.AppSecret, "appSecret", "s", token.DefaultSecret, "app secret")
+	cmd.PersistentFlags().IntVarP(&opts.Count, "number", "n", 100, "message number")
+
+	cmd.AddCommand(NewUserTalkCmd(opts))
+	cmd.AddCommand(NewGroupTalkCmd(opts))
+	cmd.AddCommand(NewLoginCmd(opts))
 	return cmd
 }
 
-func runcli(ctx context.Context, opts *StartOptions) error {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	if opts.chat == "user" {
-		err := usertalk(opts.addr, opts.appSecret, opts.count, opts.offline)
-		if err != nil {
-			return err
-		}
+type UserOptions struct {
+	Offline bool
+}
+
+func NewUserTalkCmd(opts *Options) *cobra.Command {
+	var options = &UserOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "user",
+		Short: "u",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := usertalk(opts.Addr, opts.AppSecret, opts.Count, options.Offline)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
 	}
-	return nil
+
+	cmd.PersistentFlags().BoolVarP(&options.Offline, "offline", "o", true, "receiver offline")
+	return cmd
+}
+
+func NewLoginCmd(opts *Options) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "login",
+		Short: "lo",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := login(opts.Addr, opts.AppSecret, opts.Count)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+type GroupOptions struct {
+	MemberCount   int
+	OnlinePercent float32
+}
+
+func NewGroupTalkCmd(opts *Options) *cobra.Command {
+	var options = &GroupOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "group",
+		Short: "gp",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			err := grouptalk(opts.Addr, opts.AppSecret, opts.Count, options.MemberCount, options.OnlinePercent)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+
+	cmd.PersistentFlags().IntVarP(&options.MemberCount, "memcount", "m", 20, "member count")
+	cmd.PersistentFlags().Float32VarP(&options.OnlinePercent, "percet", "p", 0.2, "online percet")
+	return cmd
 }

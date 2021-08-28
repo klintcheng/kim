@@ -50,6 +50,6 @@ func usertalk(wsurl, appSecret string, count int, offline bool) error {
 		}
 	}
 	dur := time.Since(t1)
-	logger.Infof("cost count %d cost time: %v qps:%v", count, dur, int64(count*1000)/dur.Milliseconds())
+	logger.Infof("send message count %d ; cost time: %v ; qps:%v", count, dur, int64(count*1000)/dur.Milliseconds())
 	return nil
 }
