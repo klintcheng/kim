@@ -8,6 +8,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/go-resty/resty/v2 v2.6.0
+	github.com/gobwas/pool v0.2.1
 	github.com/gobwas/ws v1.0.4
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.4.3
@@ -29,7 +30,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf // indirect
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.25.0
 	gorm.io/driver/mysql v1.1.1

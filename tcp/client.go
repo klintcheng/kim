@@ -102,7 +102,11 @@ func (c *Client) Send(payload []byte) error {
 	if err != nil {
 		return err
 	}
-	return c.conn.WriteFrame(kim.OpBinary, payload)
+	err = c.conn.WriteFrame(kim.OpBinary, payload)
+	if err != nil {
+		return err
+	}
+	return c.conn.Flush()
 }
 
 // Close 关闭
@@ -112,7 +116,8 @@ func (c *Client) Close() {
 			return
 		}
 		// graceful close connection
-		_ = WriteFrame(c.conn, kim.OpClose, nil)
+		_ = c.conn.WriteFrame(kim.OpClose, nil)
+		c.conn.Flush()
 
 		c.conn.Close()
 		atomic.CompareAndSwapInt32(&c.state, 1, 0)
@@ -154,7 +159,11 @@ func (c *Client) ping() error {
 	if err != nil {
 		return err
 	}
-	return c.conn.WriteFrame(kim.OpPing, nil)
+	err = c.conn.WriteFrame(kim.OpPing, nil)
+	if err != nil {
+		return err
+	}
+	return c.conn.Flush()
 }
 
 // ID return id

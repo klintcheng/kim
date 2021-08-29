@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"bufio"
 	"net"
 
 	"github.com/gobwas/ws"
@@ -33,16 +34,28 @@ func (f *Frame) GetPayload() []byte {
 
 type WsConn struct {
 	net.Conn
+	rd *bufio.Reader
+	wr *bufio.Writer
 }
 
 func NewConn(conn net.Conn) *WsConn {
 	return &WsConn{
 		Conn: conn,
+		rd:   bufio.NewReader(conn),
+		wr:   bufio.NewWriter(conn),
+	}
+}
+
+func NewConnWithRW(conn net.Conn, rd *bufio.Reader, wr *bufio.Writer) *WsConn {
+	return &WsConn{
+		Conn: conn,
+		rd:   rd,
+		wr:   wr,
 	}
 }
 
 func (c *WsConn) ReadFrame() (kim.Frame, error) {
-	f, err := ws.ReadFrame(c.Conn)
+	f, err := ws.ReadFrame(c.rd)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +64,9 @@ func (c *WsConn) ReadFrame() (kim.Frame, error) {
 
 func (c *WsConn) WriteFrame(code kim.OpCode, payload []byte) error {
 	f := ws.NewFrame(ws.OpCode(code), true, payload)
-	return ws.WriteFrame(c.Conn, f)
+	return ws.WriteFrame(c.wr, f)
 }
 
 func (c *WsConn) Flush() error {
-	return nil
+	return c.wr.Flush()
 }

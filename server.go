@@ -13,6 +13,12 @@ const (
 	DefaultHeartbeat = time.Second * 55
 )
 
+const (
+	// 定义读取消息的默认goroutine池大小
+	DefaultMessageReadPool       = 5000
+	DefaultUpgradeConnectionPool = 5000
+)
+
 // 定义了基础服务的抽象接口
 type Service interface {
 	ServiceID() string

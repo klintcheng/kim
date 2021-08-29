@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/klintcheng/kim/logger"
+	"github.com/panjf2000/ants/v2"
 )
 
 // ChannelImpl is a websocket implement of channel
@@ -19,12 +20,13 @@ type ChannelImpl struct {
 	writeWait time.Duration
 	readwait  time.Duration
 	closed    *Event
+	gpool     *ants.Pool
 }
 
 // NewChannel NewChannel
-func NewChannel(id string, conn Conn) Channel {
+func NewChannel(id string, conn Conn, gpool *ants.Pool) Channel {
 	log := logger.WithFields(logger.Fields{
-		"module": "channel",
+		"module": "ChannelImpl",
 		"id":     id,
 	})
 	ch := &ChannelImpl{
@@ -34,6 +36,7 @@ func NewChannel(id string, conn Conn) Channel {
 		closed:    NewEvent(),
 		writeWait: DefaultWriteWait, //default value
 		readwait:  DefaultReadWait,
+		gpool:     gpool,
 	}
 	go func() {
 		err := ch.writeloop()
@@ -45,6 +48,9 @@ func NewChannel(id string, conn Conn) Channel {
 }
 
 func (ch *ChannelImpl) writeloop() error {
+	defer func() {
+		close(ch.writechan)
+	}()
 	for {
 		select {
 		case payload := <-ch.writechan:
@@ -60,7 +66,7 @@ func (ch *ChannelImpl) writeloop() error {
 					return err
 				}
 			}
-			err = ch.Conn.Flush()
+			err = ch.Flush()
 			if err != nil {
 				return err
 			}
@@ -70,7 +76,7 @@ func (ch *ChannelImpl) writeloop() error {
 	}
 }
 
-// ID id
+// ID id simpling server
 func (ch *ChannelImpl) ID() string { return ch.id }
 
 // Send 异步写数据
@@ -92,7 +98,6 @@ func (ch *ChannelImpl) WriteFrame(code OpCode, payload []byte) error {
 // Close 关闭连接
 func (ch *ChannelImpl) Close() error {
 	ch.once.Do(func() {
-		close(ch.writechan)
 		ch.closed.Fire()
 	})
 	return nil
@@ -121,6 +126,7 @@ func (ch *ChannelImpl) Readloop(lst MessageListener) error {
 		"func":   "Readloop",
 		"id":     ch.id,
 	})
+
 	for {
 		_ = ch.SetReadDeadline(time.Now().Add(ch.readwait))
 
@@ -140,7 +146,11 @@ func (ch *ChannelImpl) Readloop(lst MessageListener) error {
 		if len(payload) == 0 {
 			continue
 		}
-		// TODO: Optimization point
-		go lst.Receive(ch, payload)
+		err = ch.gpool.Submit(func() {
+			lst.Receive(ch, payload)
+		})
+		if err != nil {
+			return err
+		}
 	}
 }
