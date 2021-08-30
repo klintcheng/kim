@@ -24,6 +24,17 @@ func (h *ServiceHandler) InsertUserMessage(c iris.Context) {
 		c.StopWithError(iris.StatusBadRequest, err)
 		return
 	}
+	messageId, err := h.insertUserMessage(&req)
+	if err != nil {
+		c.StopWithError(iris.StatusInternalServerError, err)
+		return
+	}
+	_, _ = c.Negotiate(&rpc.InsertMessageResp{
+		MessageId: messageId,
+	})
+}
+
+func (h *ServiceHandler) insertUserMessage(req *rpc.InsertMessageReq) (int64, error) {
 	messageId := h.Idgen.Next().Int64()
 	messageContent := database.MessageContent{
 		ID:       messageId,
@@ -61,12 +72,9 @@ func (h *ServiceHandler) InsertUserMessage(c iris.Context) {
 		return nil
 	})
 	if err != nil {
-		c.StopWithError(iris.StatusInternalServerError, err)
-		return
+		return 0, err
 	}
-	_, _ = c.Negotiate(&rpc.InsertMessageResp{
-		MessageId: messageId,
-	})
+	return messageId, nil
 }
 
 func (h *ServiceHandler) InsertGroupMessage(c iris.Context) {
@@ -75,13 +83,23 @@ func (h *ServiceHandler) InsertGroupMessage(c iris.Context) {
 		c.StopWithError(iris.StatusBadRequest, err)
 		return
 	}
+	messageId, err := h.insertGroupMessage(&req)
+	if err != nil {
+		c.StopWithError(iris.StatusInternalServerError, err)
+		return
+	}
+	_, _ = c.Negotiate(&rpc.InsertMessageResp{
+		MessageId: messageId,
+	})
+}
+
+func (h *ServiceHandler) insertGroupMessage(req *rpc.InsertMessageReq) (int64, error) {
 	messageId := h.Idgen.Next().Int64()
 
 	var members []database.GroupMember
 	err := h.BaseDb.Where(&database.GroupMember{Group: req.Dest}).Find(&members).Error
 	if err != nil {
-		c.StopWithError(iris.StatusInternalServerError, err)
-		return
+		return 0, err
 	}
 	// 扩散写
 	var idxs = make([]database.MessageIndex, len(members))
@@ -118,12 +136,9 @@ func (h *ServiceHandler) InsertGroupMessage(c iris.Context) {
 		return nil
 	})
 	if err != nil {
-		c.StopWithError(iris.StatusInternalServerError, err)
-		return
+		return 0, err
 	}
-	_, _ = c.Negotiate(&rpc.InsertMessageResp{
-		MessageId: messageId,
-	})
+	return messageId, nil
 }
 
 func (h *ServiceHandler) MessageAck(c iris.Context) {
