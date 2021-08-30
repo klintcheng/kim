@@ -3,13 +3,12 @@ package dialer
 import (
 	"github.com/klintcheng/kim"
 	"github.com/klintcheng/kim/websocket"
+	"github.com/klintcheng/kim/wire/token"
 )
 
 func Login(wsurl, account string, appSecrets ...string) (kim.Client, error) {
-	cli := websocket.NewClient(account, "unittest", websocket.ClientOptions{
-		Heartbeat: kim.DefaultHeartbeat,
-	})
-	secret := ""
+	cli := websocket.NewClient(account, "unittest", websocket.ClientOptions{})
+	secret := token.DefaultSecret
 	if len(appSecrets) > 0 {
 		secret = appSecrets[0]
 	}

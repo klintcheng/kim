@@ -3,7 +3,6 @@ package benchmark
 import (
 	"bytes"
 	"fmt"
-	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -16,13 +15,13 @@ import (
 )
 
 func Benchmark_Usertalk(b *testing.B) {
-	cli1, err := dialer.Login(wsurl, "test1")
+	cli1, err := dialer.Login(wsurl, "test1", appSecret)
 	assert.Nil(b, err)
 
 	offline := true
 
 	if !offline {
-		cli2, err := dialer.Login(wsurl, "test2")
+		cli2, err := dialer.Login(wsurl, "test2", appSecret)
 		assert.Nil(b, err)
 
 		go func() {
@@ -34,42 +33,33 @@ func Benchmark_Usertalk(b *testing.B) {
 			}
 		}()
 	}
-	var lock sync.Mutex
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	t1 := time.Now()
-	b.Logf("cpu %d", runtime.NumCPU())
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	for i := 0; i < b.N; i++ {
+		p := pkt.New(wire.CommandChatUserTalk, pkt.WithDest("test2"))
+		p.WriteBody(&pkt.MessageReq{
+			Type: 1,
+			Body: "hello world",
+		})
+		err := cli1.Send(pkt.Marshal(p))
+		assert.Nil(b, err)
+		frame, _ := cli1.Read()
 
-	b.RunParallel(func(p *testing.PB) {
-		for p.Next() {
-			p := pkt.New(wire.CommandChatUserTalk, pkt.WithDest("test2"))
-			p.WriteBody(&pkt.MessageReq{
-				Type: 1,
-				Body: "hello world",
-			})
-			err := cli1.Send(pkt.Marshal(p))
+		if frame.GetOpCode() == kim.OpBinary {
+			packet, err := pkt.MustReadLogicPkt(bytes.NewBuffer(frame.GetPayload()))
 			assert.Nil(b, err)
-
-			lock.Lock()
-			frame, _ := cli1.Read()
-			lock.Unlock()
-
-			if frame.GetOpCode() == kim.OpBinary {
-				packet, err := pkt.MustReadLogicPkt(bytes.NewBuffer(frame.GetPayload()))
-				assert.Nil(b, err)
-				assert.Equal(b, pkt.Status_Success, packet.Header.Status)
-			}
+			assert.Equal(b, pkt.Status_Success, packet.Header.Status)
 		}
-	})
+	}
 	b.Logf("cost %v", time.Since(t1))
 }
 
-func Benchmark_grouptalk(t *testing.B) {
-	cli1, err := dialer.Login(wsurl, "test1")
-	assert.Nil(t, err)
+func Benchmark_grouptalk(b *testing.B) {
+	cli1, err := dialer.Login(wsurl, "test1", appSecret)
+	assert.Nil(b, err)
 	memberNums := 100
 	var members = make([]string, memberNums)
 	for i := 0; i < memberNums; i++ {
@@ -84,28 +74,28 @@ func Benchmark_grouptalk(t *testing.B) {
 		Members: members,
 	})
 	err = cli1.Send(pkt.Marshal(p))
-	assert.Nil(t, err)
+	assert.Nil(b, err)
 	// 读取返回信息
 	ack, err := cli1.Read()
-	assert.Nil(t, err)
+	assert.Nil(b, err)
 
 	ackp, _ := pkt.MustReadLogicPkt(bytes.NewBuffer(ack.GetPayload()))
-	assert.Equal(t, pkt.Status_Success, ackp.GetStatus())
-	assert.Equal(t, wire.CommandGroupCreate, ackp.GetCommand())
+	assert.Equal(b, pkt.Status_Success, ackp.GetStatus())
+	assert.Equal(b, wire.CommandGroupCreate, ackp.GetCommand())
 
 	var createresp pkt.GroupCreateResp
 	err = ackp.ReadBody(&createresp)
-	assert.Nil(t, err)
+	assert.Nil(b, err)
 	group := createresp.GetGroupId()
-	assert.NotEmpty(t, group)
+	assert.NotEmpty(b, group)
 	if group == "" {
 		return
 	}
 
 	onlines := memberNums / 2
 	for i := 1; i < onlines; i++ {
-		clix, err := dialer.Login(wsurl, fmt.Sprintf("test%d", i))
-		assert.Nil(t, err)
+		clix, err := dialer.Login(wsurl, fmt.Sprintf("test%d", i), appSecret)
+		assert.Nil(b, err)
 		go func(cli kim.Client) {
 			for {
 				_, err := cli.Read()
@@ -119,25 +109,22 @@ func Benchmark_grouptalk(t *testing.B) {
 
 	var lock sync.Mutex
 
-	t.ReportAllocs()
-	t.ResetTimer()
-	t.Logf("cpu %d", runtime.NumCPU())
+	b.ReportAllocs()
+	b.ResetTimer()
 
-	t.RunParallel(func(p *testing.PB) {
-		for p.Next() {
-			// 发送消息
-			gtalk := pkt.New(wire.CommandChatGroupTalk, pkt.WithDest(group)).WriteBody(&pkt.MessageReq{
-				Type: 1,
-				Body: "hellogroup",
-			})
-			err = cli1.Send(pkt.Marshal(gtalk))
-			assert.Nil(t, err)
-			// 读取消息
-			lock.Lock()
-			_, _ = cli1.Read()
-			lock.Unlock()
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		// 发送消息
+		gtalk := pkt.New(wire.CommandChatGroupTalk, pkt.WithDest(group)).WriteBody(&pkt.MessageReq{
+			Type: 1,
+			Body: "hellogroup",
+		})
+		err = cli1.Send(pkt.Marshal(gtalk))
+		assert.Nil(b, err)
+		// 读取消息
+		lock.Lock()
+		_, _ = cli1.Read()
+		lock.Unlock()
+	}
 
-	t.Logf("cost %v", time.Since(t1))
+	b.Logf("cost %v", time.Since(t1))
 }
