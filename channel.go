@@ -25,10 +25,6 @@ type ChannelImpl struct {
 
 // NewChannel NewChannel
 func NewChannel(id string, conn Conn, gpool *ants.Pool) Channel {
-	log := logger.WithFields(logger.Fields{
-		"module": "ChannelImpl",
-		"id":     id,
-	})
 	ch := &ChannelImpl{
 		id:        id,
 		Conn:      conn,
@@ -41,7 +37,10 @@ func NewChannel(id string, conn Conn, gpool *ants.Pool) Channel {
 	go func() {
 		err := ch.writeloop()
 		if err != nil {
-			log.Info(err)
+			logger.WithFields(logger.Fields{
+				"module": "ChannelImpl",
+				"id":     id,
+			}).Info(err)
 		}
 	}()
 	return ch
@@ -121,12 +120,6 @@ func (ch *ChannelImpl) SetReadWait(readwait time.Duration) {
 func (ch *ChannelImpl) Readloop(lst MessageListener) error {
 	ch.Lock()
 	defer ch.Unlock()
-	log := logger.WithFields(logger.Fields{
-		"struct": "ChannelImpl",
-		"func":   "Readloop",
-		"id":     ch.id,
-	})
-
 	for {
 		_ = ch.SetReadDeadline(time.Now().Add(ch.readwait))
 
@@ -138,7 +131,12 @@ func (ch *ChannelImpl) Readloop(lst MessageListener) error {
 			return errors.New("remote side close the channel")
 		}
 		if frame.GetOpCode() == OpPing {
-			log.Trace("recv a ping; resp with a pong")
+			logger.WithFields(logger.Fields{
+				"struct": "ChannelImpl",
+				"func":   "Readloop",
+				"id":     ch.id,
+			}).Trace("recv a ping; resp with a pong")
+
 			_ = ch.WriteFrame(OpPong, nil)
 			continue
 		}
