@@ -83,6 +83,6 @@ func grouptalk(wsurl, appSecret string, count int, memberCount int, onlinePercen
 	}
 
 	dur := time.Since(t1)
-	logger.Infof("send message count %d; cost time: %v; qps:%v", count, dur, int64(count*1000)/dur.Milliseconds())
+	logger.Infof("send message count %d; cost time: %v; tps:%v", count, dur, int64(count*1000)/dur.Milliseconds())
 	return nil
 }

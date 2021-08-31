@@ -12,7 +12,7 @@ import (
 )
 
 func login(wsurl, appSecret string, count int, keep time.Duration) error {
-	p, _ := ants.NewPool(count, ants.WithPreAlloc(true))
+	p, _ := ants.NewPool(50, ants.WithPreAlloc(true))
 	defer p.Release()
 
 	var wg sync.WaitGroup
@@ -33,7 +33,7 @@ func login(wsurl, appSecret string, count int, keep time.Duration) error {
 	}
 	wg.Wait()
 	dur := time.Since(t1)
-	logger.Infof("cost count %d cost time: %v qps:%v", count, dur, int64(count*1000)/dur.Milliseconds())
+	logger.Infof("cost count %d cost time: %v tps:%v", count, dur, int64(count*1000)/dur.Milliseconds())
 
 	logger.Infof("keep login for %v", keep)
 	for _, cli := range clis {
