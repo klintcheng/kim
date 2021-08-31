@@ -3,7 +3,6 @@ package benchmark
 import (
 	"bytes"
 	"fmt"
-	"sync"
 	"testing"
 	"time"
 
@@ -107,8 +106,6 @@ func Benchmark_grouptalk(b *testing.B) {
 	}
 	t1 := time.Now()
 
-	var lock sync.Mutex
-
 	b.ReportAllocs()
 	b.ResetTimer()
 
@@ -121,10 +118,10 @@ func Benchmark_grouptalk(b *testing.B) {
 		err = cli1.Send(pkt.Marshal(gtalk))
 		assert.Nil(b, err)
 		// 读取消息
-		lock.Lock()
 		_, _ = cli1.Read()
-		lock.Unlock()
 	}
 
 	b.Logf("cost %v", time.Since(t1))
+
+	cli1.Close()
 }
