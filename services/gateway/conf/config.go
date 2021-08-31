@@ -13,16 +13,18 @@ import (
 
 // Config Config
 type Config struct {
-	ServiceID     string
-	ServiceName   string `default:"gateway"`
-	Listen        string `default:":8000"`
-	PublicAddress string
-	PublicPort    int `default:"8000"`
-	Tags          []string
-	ConsulURL     string
-	MonitorPort   int `default:"8001"`
-	AppSecret     string
-	LogLevel      string `default:"INFO"`
+	ServiceID       string
+	ServiceName     string `default:"gateway"`
+	Listen          string `default:":8000"`
+	PublicAddress   string
+	PublicPort      int `default:"8000"`
+	Tags            []string
+	ConsulURL       string
+	MonitorPort     int `default:"8001"`
+	AppSecret       string
+	LogLevel        string `default:"INFO"`
+	MessageGPool    int    `default:"10000"`
+	ConnectionGPool int    `default:"15000"`
 }
 
 func (c Config) String() string {

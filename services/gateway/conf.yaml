@@ -7,3 +7,5 @@ Tags:
   - gate
 ConsulURL: localhost:8500
 AppSecret: ""
+MessageGPool: 5000
+ConnectionGPool: 15000

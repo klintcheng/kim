@@ -27,12 +27,6 @@ type Handler struct {
 
 // Accept this connection
 func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
-	log := logger.WithFields(logger.Fields{
-		"ServiceID": h.ServiceID,
-		"module":    "Handler",
-		"handler":   "Accept",
-	})
-	log.Infoln("enter")
 	// 1. 读取登陆包
 	_ = conn.SetReadDeadline(time.Now().Add(timeout))
 	frame, err := conn.ReadFrame()

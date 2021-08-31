@@ -71,11 +71,13 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 			consul.KeyHealthURL: fmt.Sprintf("http://%s:%d/health", config.PublicAddress, config.MonitorPort),
 		},
 	}
-
+	srvOpts := []kim.ServerOption{
+		kim.WithConnectionGPool(config.ConnectionGPool), kim.WithMessageGPool(config.MessageGPool),
+	}
 	if opts.protocol == "ws" {
-		srv = websocket.NewServer(config.Listen, service)
+		srv = websocket.NewServer(config.Listen, service, srvOpts...)
 	} else if opts.protocol == "tcp" {
-		srv = tcp.NewServer(config.Listen, service)
+		srv = tcp.NewServer(config.Listen, service, srvOpts...)
 	}
 
 	srv.SetReadWait(time.Minute * 2)

@@ -20,16 +20,18 @@ type Server struct {
 
 // Config Config
 type Config struct {
-	ServiceID     string
-	Listen        string `default:":8005"`
-	MonitorPort   int    `default:"8006"`
-	PublicAddress string
-	PublicPort    int `default:"8005"`
-	Tags          []string
-	ConsulURL     string
-	RedisAddrs    string
-	RoyalURL      string
-	LogLevel      string `default:"INFO"`
+	ServiceID       string
+	Listen          string `default:":8005"`
+	MonitorPort     int    `default:"8006"`
+	PublicAddress   string
+	PublicPort      int `default:"8005"`
+	Tags            []string
+	ConsulURL       string
+	RedisAddrs      string
+	RoyalURL        string
+	LogLevel        string `default:"INFO"`
+	MessageGPool    int    `default:"5000"`
+	ConnectionGPool int    `default:"500"`
 }
 
 func (c Config) String() string {

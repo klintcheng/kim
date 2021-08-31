@@ -15,7 +15,7 @@ const (
 
 const (
 	// 定义读取消息的默认goroutine池大小
-	DefaultMessageReadPool       = 5000
+	DefaultMessageReadPool       = 10000
 	DefaultUpgradeConnectionPool = 12000
 )
 

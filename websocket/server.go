@@ -13,8 +13,8 @@ type Upgrader struct {
 }
 
 // NewServer NewServer
-func NewServer(listen string, service kim.ServiceRegistration) kim.Server {
-	return kim.NewServer(listen, service, new(Upgrader))
+func NewServer(listen string, service kim.ServiceRegistration, options ...kim.ServerOption) kim.Server {
+	return kim.NewServer(listen, service, new(Upgrader), options...)
 }
 
 func (u *Upgrader) Name() string {

@@ -24,9 +24,25 @@ type Upgrader interface {
 
 // ServerOptions ServerOptions
 type ServerOptions struct {
-	Loginwait time.Duration //登录超时
-	Readwait  time.Duration //读超时
-	Writewait time.Duration //写超时
+	Loginwait       time.Duration //登录超时
+	Readwait        time.Duration //读超时
+	Writewait       time.Duration //写超时
+	MessageGPool    int
+	ConnectionGPool int
+}
+
+type ServerOption func(*ServerOptions)
+
+func WithMessageGPool(val int) ServerOption {
+	return func(opts *ServerOptions) {
+		opts.MessageGPool = val
+	}
+}
+
+func WithConnectionGPool(val int) ServerOption {
+	return func(opts *ServerOptions) {
+		opts.ConnectionGPool = val
+	}
 }
 
 // DefaultServer is a websocket implement of the DefaultServer
@@ -39,23 +55,28 @@ type DefaultServer struct {
 	MessageListener
 	StateListener
 	once    sync.Once
-	options ServerOptions
+	options *ServerOptions
 	quit    int32
 }
 
 // NewServer NewServer
-func NewServer(listen string, service ServiceRegistration, upgrader Upgrader) *DefaultServer {
-
+func NewServer(listen string, service ServiceRegistration, upgrader Upgrader, options ...ServerOption) *DefaultServer {
+	defaultOpts := &ServerOptions{
+		Loginwait:       DefaultLoginWait,
+		Readwait:        DefaultReadWait,
+		Writewait:       DefaultWriteWait,
+		MessageGPool:    DefaultMessageReadPool,
+		ConnectionGPool: DefaultUpgradeConnectionPool,
+	}
+	for _, option := range options {
+		option(defaultOpts)
+	}
 	return &DefaultServer{
 		listen:              listen,
 		ServiceRegistration: service,
-		options: ServerOptions{
-			Loginwait: DefaultLoginWait,
-			Readwait:  DefaultReadWait,
-			Writewait: DefaultWriteWait,
-		},
-		Upgrader: upgrader,
-		quit:     0,
+		options:             defaultOpts,
+		Upgrader:            upgrader,
+		quit:                0,
 	}
 }
 
@@ -81,9 +102,9 @@ func (s *DefaultServer) Start() error {
 	if err != nil {
 		return err
 	}
-	rpool, _ := ants.NewPool(DefaultMessageReadPool, ants.WithPreAlloc(true))
+	rpool, _ := ants.NewPool(s.options.MessageGPool, ants.WithPreAlloc(true))
 	// 采用非阻塞模式，当worker不够时，新进来的连接被断开。
-	cpool, _ := ants.NewPool(DefaultUpgradeConnectionPool, ants.WithPreAlloc(true), ants.WithNonblocking(true))
+	cpool, _ := ants.NewPool(s.options.ConnectionGPool, ants.WithPreAlloc(true), ants.WithNonblocking(true))
 	defer func() {
 		rpool.Release()
 		cpool.Release()

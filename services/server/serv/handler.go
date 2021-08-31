@@ -35,8 +35,6 @@ func NewServHandler(r *kim.Router, cache kim.SessionStorage) *ServHandler {
 
 // Accept this connection
 func (h *ServHandler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
-	log.Infoln("enter")
-
 	_ = conn.SetReadDeadline(time.Now().Add(timeout))
 	frame, err := conn.ReadFrame()
 	if err != nil {

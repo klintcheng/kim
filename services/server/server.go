@@ -111,7 +111,10 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 			consul.KeyHealthURL: fmt.Sprintf("http://%s:%d/health", config.PublicAddress, config.MonitorPort),
 		},
 	}
-	srv := tcp.NewServer(config.Listen, service)
+	srvOpts := []kim.ServerOption{
+		kim.WithConnectionGPool(config.ConnectionGPool), kim.WithMessageGPool(config.MessageGPool),
+	}
+	srv := tcp.NewServer(config.Listen, service, srvOpts...)
 
 	srv.SetReadWait(kim.DefaultReadWait)
 	srv.SetAcceptor(servhandler)
