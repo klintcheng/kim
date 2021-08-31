@@ -18,12 +18,10 @@ func Benchmark_Login(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	t0 := time.Now()
-	b.RunParallel(func(p *testing.PB) {
-		for p.Next() {
-			_, err := dialer.Login(wsurl, fmt.Sprintf("user_%v", ksuid.New()), appSecret)
-			assert.Nil(b, err)
-		}
-	})
+	for i := 0; i < b.N; i++ {
+		_, err := dialer.Login(wsurl, fmt.Sprintf("user_%v", ksuid.New()), appSecret)
+		assert.Nil(b, err)
+	}
 
 	b.Logf("logined %d cost %v", b.N, time.Since(t0))
 }
