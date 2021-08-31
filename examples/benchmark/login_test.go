@@ -11,10 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// const wsurl = "ws://119.3.4.216:8000"
-// const appSecret = "kingimcloud.cn"
-
-const wsurl = "ws://localhost:8000"
+const wsurl = "ws://124.71.204.19:8000"
 const appSecret = token.DefaultSecret
 
 func Benchmark_Login(b *testing.B) {
