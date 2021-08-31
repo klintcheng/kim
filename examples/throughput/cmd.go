@@ -97,6 +97,6 @@ func NewGroupTalkCmd(opts *Options) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().IntVarP(&options.MemberCount, "memcount", "m", 20, "member count")
-	cmd.PersistentFlags().Float32VarP(&options.OnlinePercent, "percet", "p", 0.2, "online percet")
+	cmd.PersistentFlags().Float32VarP(&options.OnlinePercent, "percet", "p", 0.5, "online percet")
 	return cmd
 }

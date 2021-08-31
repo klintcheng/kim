@@ -17,9 +17,8 @@ func Benchmark_Usertalk(b *testing.B) {
 	cli1, err := dialer.Login(wsurl, "test1", appSecret)
 	assert.Nil(b, err)
 
-	offline := true
-
-	if !offline {
+	online := false
+	if online {
 		cli2, err := dialer.Login(wsurl, "test2", appSecret)
 		assert.Nil(b, err)
 
@@ -45,13 +44,7 @@ func Benchmark_Usertalk(b *testing.B) {
 		})
 		err := cli1.Send(pkt.Marshal(p))
 		assert.Nil(b, err)
-		frame, _ := cli1.Read()
-
-		if frame.GetOpCode() == kim.OpBinary {
-			packet, err := pkt.MustReadLogicPkt(bytes.NewBuffer(frame.GetPayload()))
-			assert.Nil(b, err)
-			assert.Equal(b, pkt.Status_Success, packet.Header.Status)
-		}
+		_, _ = cli1.Read()
 	}
 	b.Logf("cost %v", time.Since(t1))
 }
