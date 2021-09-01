@@ -79,7 +79,13 @@ func usertalk(wsurl, appSecret string, threads, count int, online bool) error {
 			}
 			// 读取Resp消息
 			_, err = cli.Read()
-
+			if err != nil {
+				r.Add(&report.Result{
+					Err:           err,
+					ContentLength: 11,
+				})
+				return
+			}
 			r.Add(&report.Result{
 				Duration:   time.Since(t0),
 				Err:        err,
