@@ -1,4 +1,4 @@
-package throughput
+package kimbench
 
 import (
 	"bytes"

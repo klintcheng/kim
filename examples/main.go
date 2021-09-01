@@ -5,8 +5,8 @@ import (
 	"flag"
 
 	"github.com/klintcheng/kim/examples/echo"
+	"github.com/klintcheng/kim/examples/kimbench"
 	"github.com/klintcheng/kim/examples/mock"
-	"github.com/klintcheng/kim/examples/throughput"
 	"github.com/klintcheng/kim/logger"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +29,7 @@ func main() {
 	// mock
 	root.AddCommand(mock.NewClientCmd(ctx))
 	root.AddCommand(mock.NewServerCmd(ctx))
-	root.AddCommand(throughput.NewBenchmarkCmd(ctx))
+	root.AddCommand(kimbench.NewBenchmarkCmd(ctx))
 
 	if err := root.Execute(); err != nil {
 		logger.WithError(err).Fatal("Could not run command")
