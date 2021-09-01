@@ -92,8 +92,8 @@ func (ch *ChannelImpl) WriteFrame(code OpCode, payload []byte) error {
 // Close 关闭连接
 func (ch *ChannelImpl) Close() error {
 	ch.once.Do(func() {
-		close(ch.writechan)
 		ch.closed.Fire()
+		close(ch.writechan)
 	})
 	return nil
 }

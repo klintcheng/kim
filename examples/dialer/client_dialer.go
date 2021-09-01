@@ -21,7 +21,6 @@ type ClientDialer struct {
 }
 
 func (d *ClientDialer) DialAndHandshake(ctx kim.DialerContext) (net.Conn, error) {
-	logger.Info("DialAndHandshake called")
 	// 1. 拨号
 	conn, _, _, err := ws.Dial(context.TODO(), ctx.Address)
 	if err != nil {
@@ -49,7 +48,6 @@ func (d *ClientDialer) DialAndHandshake(ctx kim.DialerContext) (net.Conn, error)
 	}
 
 	// wait resp
-	logger.Info("waiting for login response")
 	_ = conn.SetReadDeadline(time.Now().Add(ctx.Timeout))
 	frame, err := ws.ReadFrame(conn)
 	if err != nil {
@@ -66,6 +64,6 @@ func (d *ClientDialer) DialAndHandshake(ctx kim.DialerContext) (net.Conn, error)
 	var resp = new(pkt.LoginResp)
 	_ = ack.ReadBody(resp)
 
-	logger.Info("logined ", resp.GetChannelId())
+	logger.Debug("logined ", resp.GetChannelId())
 	return conn, nil
 }

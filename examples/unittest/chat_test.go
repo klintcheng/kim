@@ -6,16 +6,17 @@ import (
 	"time"
 
 	"github.com/klintcheng/kim"
+	"github.com/klintcheng/kim/examples/dialer"
 	"github.com/klintcheng/kim/wire"
 	"github.com/klintcheng/kim/wire/pkt"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Usertalk(t *testing.T) {
-	cli1, err := login("test1")
+	cli1, err := dialer.Login(wsurl, "test1")
 	assert.Nil(t, err)
 
-	cli2, err := login("test2")
+	cli2, err := dialer.Login(wsurl, "test2")
 	assert.Nil(t, err)
 
 	p := pkt.New(wire.CommandChatUserTalk, pkt.WithDest("test2"))
@@ -54,7 +55,7 @@ func Test_Usertalk(t *testing.T) {
 
 func Test_grouptalk(t *testing.T) {
 	// 1. test1 登陆
-	cli1, err := login("test1")
+	cli1, err := dialer.Login(wsurl, "test1")
 	assert.Nil(t, err)
 
 	// 2. 创建群
@@ -83,9 +84,9 @@ func Test_grouptalk(t *testing.T) {
 		return
 	}
 	// 5. 群成员test2、test3 登录
-	cli2, err := login("test2")
+	cli2, err := dialer.Login(wsurl, "test2")
 	assert.Nil(t, err)
-	cli3, err := login("test3")
+	cli3, err := dialer.Login(wsurl, "test3")
 	assert.Nil(t, err)
 	t1 := time.Now()
 

@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 
+	"github.com/bwmarrin/snowflake"
 	"github.com/kataras/iris/v12"
 	"github.com/klintcheng/kim/services/service/database"
 	"github.com/klintcheng/kim/wire/rpc"
@@ -18,12 +19,24 @@ func (h *ServiceHandler) GroupCreate(c iris.Context) {
 		c.StopWithError(iris.StatusBadRequest, err)
 		return
 	}
+	req.App = app
+	groupId, err := h.groupCreate(&req)
+	if err != nil {
+		c.StopWithError(iris.StatusInternalServerError, err)
+		return
+	}
+	_, _ = c.Negotiate(&rpc.CreateGroupResp{
+		GroupId: groupId.Base36(),
+	})
+}
+
+func (h *ServiceHandler) groupCreate(req *rpc.CreateGroupReq) (snowflake.ID, error) {
 	groupId := h.Idgen.Next()
 	g := &database.Group{
 		Model: database.Model{
 			ID: groupId.Int64(),
 		},
-		App:          app,
+		App:          req.App,
 		Group:        groupId.Base36(),
 		Name:         req.Name,
 		Avatar:       req.Avatar,
@@ -53,12 +66,9 @@ func (h *ServiceHandler) GroupCreate(c iris.Context) {
 		return nil
 	})
 	if err != nil {
-		c.StopWithError(iris.StatusInternalServerError, err)
-		return
+		return 0, err
 	}
-	_, _ = c.Negotiate(&rpc.CreateGroupResp{
-		GroupId: groupId.Base36(),
-	})
+	return groupId, nil
 }
 
 func (h *ServiceHandler) GroupJoin(c iris.Context) {

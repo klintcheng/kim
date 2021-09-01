@@ -2,6 +2,8 @@ package mock
 
 import (
 	"errors"
+	"net/http"
+	_ "net/http/pprof"
 	"time"
 
 	"github.com/klintcheng/kim"
@@ -14,6 +16,10 @@ import (
 type ServerDemo struct{}
 
 func (s *ServerDemo) Start(id, protocol, addr string) {
+	go func() {
+		_ = http.ListenAndServe("0.0.0.0:6060", nil)
+	}()
+
 	var srv kim.Server
 	service := &naming.DefaultService{
 		Id:       id,
@@ -49,13 +55,13 @@ func (h *ServerHandler) Accept(conn kim.Conn, timeout time.Duration) (string, er
 	if err != nil {
 		return "", err
 	}
-	logger.Info("recv", frame.GetOpCode())
 	// 2. 解析：数据包内容就是userId
 	userID := string(frame.GetPayload())
 	// 3. 鉴权：这里只是为了示例做一个fake验证，非空
 	if userID == "" {
 		return "", errors.New("user id is invalid")
 	}
+	logger.Infof("logined %s", userID)
 	return userID, nil
 }
 

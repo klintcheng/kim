@@ -41,7 +41,7 @@ func NewServer(listen string, service kim.ServiceRegistration) kim.Server {
 		options: ServerOptions{
 			loginwait: kim.DefaultLoginWait,
 			readwait:  kim.DefaultReadWait,
-			writewait: time.Second * 10,
+			writewait: kim.DefaultWriteWait,
 		},
 	}
 }

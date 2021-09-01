@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/klintcheng/kim"
+	"github.com/klintcheng/kim/examples/dialer"
 	"github.com/klintcheng/kim/logger"
 	"github.com/klintcheng/kim/wire"
 	"github.com/klintcheng/kim/wire/pkt"
@@ -16,7 +17,7 @@ import (
 
 func Test_offline(t *testing.T) {
 	src := fmt.Sprintf("u%d", time.Now().Unix())
-	cli, err := login(src)
+	cli, err := dialer.Login(wsurl, src)
 	assert.Nil(t, err)
 
 	dest := fmt.Sprintf("u%d", time.Now().Unix()+1)
@@ -36,7 +37,7 @@ func Test_offline(t *testing.T) {
 		_, _ = cli.Read()
 	}
 
-	destcli, err := login(dest)
+	destcli, err := dialer.Login(wsurl, dest)
 	assert.Nil(t, err)
 
 	// request offline message index
