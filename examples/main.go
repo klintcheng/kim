@@ -19,7 +19,7 @@ func main() {
 	root := &cobra.Command{
 		Use:     "kim",
 		Version: version,
-		Short:   "server",
+		Short:   "tools",
 	}
 	ctx := context.Background()
 

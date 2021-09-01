@@ -23,6 +23,8 @@ Latency distribution:{{ range .LatencyDistribution }}
 
 Status code distribution:{{ range $code, $num := .StatusCodeDist }}
   [{{ $code }}]	{{ $num }} responses{{ end }}
+{{ if gt (len .ErrorDist) 0 }}Error distribution:{{ range $err, $num := .ErrorDist }}
+  [{{ $num }}]	{{ $err }}{{ end }}{{ end }}
 `
 )
 

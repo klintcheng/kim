@@ -4,24 +4,25 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/klintcheng/kim"
 	"github.com/klintcheng/kim/examples/dialer"
-	"github.com/klintcheng/kim/logger"
 	"github.com/klintcheng/kim/report"
 	"github.com/klintcheng/kim/wire"
 	"github.com/klintcheng/kim/wire/pkt"
+	"github.com/panjf2000/ants/v2"
 )
 
-func grouptalk(wsurl, appSecret string, count int, memberCount int, onlinePercent float32) error {
+func grouptalk(wsurl, appSecret string, threads, count int, memberCount int, onlinePercent float32) error {
 	cli1, err := dialer.Login(wsurl, "test1", appSecret)
 	if err != nil {
 		return err
 	}
 	var members = make([]string, memberCount)
 	for i := 0; i < memberCount; i++ {
-		members[i] = fmt.Sprintf("test%d", i+1)
+		members[i] = fmt.Sprintf("test_%d", i+1)
 	}
 	// 创建群
 	p := pkt.New(wire.CommandGroupCreate)
@@ -39,7 +40,6 @@ func grouptalk(wsurl, appSecret string, count int, memberCount int, onlinePercen
 	if pkt.Status_Success != ackp.GetStatus() {
 		return fmt.Errorf("create group failed")
 	}
-
 	var createresp pkt.GroupCreateResp
 	_ = ackp.ReadBody(&createresp)
 	group := createresp.GetGroupId()
@@ -49,7 +49,7 @@ func grouptalk(wsurl, appSecret string, count int, memberCount int, onlinePercen
 		onlines = 1
 	}
 	for i := 1; i < onlines; i++ {
-		clix, err := dialer.Login(wsurl, fmt.Sprintf("test%d", i), appSecret)
+		clix, err := dialer.Login(wsurl, fmt.Sprintf("test_%d", i), appSecret)
 		if err != nil {
 			return err
 		}
@@ -63,43 +63,53 @@ func grouptalk(wsurl, appSecret string, count int, memberCount int, onlinePercen
 		}(clix)
 	}
 
+	clis, err := loginMulti(wsurl, appSecret, 2, threads)
+	if err != nil {
+		return err
+	}
+
+	pool, _ := ants.NewPool(threads, ants.WithPreAlloc(true))
+	defer pool.Release()
+
 	r := report.New(os.Stdout, count)
 	t1 := time.Now()
-	requests := make(map[uint32]time.Time, count)
-	go func() {
-		for i := 0; i < count; i++ {
-			gtalk := pkt.New(wire.CommandChatGroupTalk, pkt.WithDest(group)).WriteBody(&pkt.MessageReq{
-				Type: 1,
-				Body: "hellogroup",
-			})
-			requests[gtalk.Sequence] = time.Now()
 
-			err := cli1.Send(pkt.Marshal(gtalk))
+	var wg sync.WaitGroup
+	wg.Add(count)
+	for i := 0; i < count; i++ {
+		cli := clis[i%threads]
+		_ = pool.Submit(func() {
+			defer func() {
+				wg.Done()
+			}()
+
+			t0 := time.Now()
+			p := pkt.New(wire.CommandChatGroupTalk, pkt.WithDest(group))
+			p.WriteBody(&pkt.MessageReq{
+				Type: 1,
+				Body: "hello world",
+			})
+			// 发送消息
+			err := cli.Send(pkt.Marshal(p))
 			if err != nil {
-				logger.Error(err)
+				r.Add(&report.Result{
+					Err:           err,
+					ContentLength: 11,
+				})
 				return
 			}
-		}
-	}()
+			// 读取Resp消息
+			_, err = cli.Read()
 
-	for i := 0; i < count; i++ {
-		frame, err := cli1.Read()
-		if err != nil {
 			r.Add(&report.Result{
-				Err:           err,
-				ContentLength: 11,
+				Duration:   time.Since(t0),
+				Err:        err,
+				StatusCode: 0,
 			})
-			continue
-		}
-		ack, err := pkt.MustReadLogicPkt(bytes.NewBuffer(frame.GetPayload()))
-		r.Add(&report.Result{
-			Duration:      time.Since(requests[ack.GetSequence()]),
-			Err:           err,
-			ContentLength: 11,
-			StatusCode:    int(ack.GetStatus()),
 		})
 	}
 
+	wg.Wait()
 	r.Finalize(time.Since(t1))
 	return nil
 }
