@@ -13,6 +13,7 @@ type Options struct {
 	Addr      string
 	AppSecret string
 	Count     int
+	Threads   int
 }
 
 // NewCmd NewCmd
@@ -25,6 +26,7 @@ func NewBenchmarkCmd(ctx context.Context) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&opts.Addr, "address", "a", "ws://124.71.204.19:8000", "server address")
 	cmd.PersistentFlags().StringVarP(&opts.AppSecret, "appSecret", "s", token.DefaultSecret, "app secret")
 	cmd.PersistentFlags().IntVarP(&opts.Count, "number", "n", 100, "message number")
+	cmd.PersistentFlags().IntVarP(&opts.Threads, "threads", "t", 10, "threads number")
 
 	cmd.AddCommand(NewUserTalkCmd(opts))
 	cmd.AddCommand(NewGroupTalkCmd(opts))
@@ -33,7 +35,7 @@ func NewBenchmarkCmd(ctx context.Context) *cobra.Command {
 }
 
 type UserOptions struct {
-	Offline bool
+	online bool
 }
 
 func NewUserTalkCmd(opts *Options) *cobra.Command {
@@ -43,7 +45,7 @@ func NewUserTalkCmd(opts *Options) *cobra.Command {
 		Use:   "user",
 		Short: "u",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := usertalk(opts.Addr, opts.AppSecret, opts.Count, options.Offline)
+			err := usertalk(opts.Addr, opts.AppSecret, opts.Count, options.online)
 			if err != nil {
 				return err
 			}
@@ -51,7 +53,7 @@ func NewUserTalkCmd(opts *Options) *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().BoolVarP(&options.Offline, "offline", "o", true, "receiver offline")
+	cmd.PersistentFlags().BoolVarP(&options.online, "online", "o", false, "set online of receiver")
 	return cmd
 }
 
@@ -65,7 +67,7 @@ func NewLoginCmd(opts *Options) *cobra.Command {
 		Use:   "login",
 		Short: "lo",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := login(opts.Addr, opts.AppSecret, opts.Count, options.keep)
+			err := login(opts.Addr, opts.AppSecret, opts.Threads, opts.Count, options.keep)
 			if err != nil {
 				return err
 			}

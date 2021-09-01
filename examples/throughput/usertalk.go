@@ -1,21 +1,24 @@
 package throughput
 
 import (
+	"bytes"
+	"os"
 	"time"
 
 	"github.com/klintcheng/kim/examples/dialer"
 	"github.com/klintcheng/kim/logger"
+	"github.com/klintcheng/kim/report"
 	"github.com/klintcheng/kim/wire"
 	"github.com/klintcheng/kim/wire/pkt"
 )
 
-func usertalk(wsurl, appSecret string, count int, offline bool) error {
+func usertalk(wsurl, appSecret string, count int, online bool) error {
 	cli1, err := dialer.Login(wsurl, "test1", appSecret)
 	if err != nil {
 		return err
 	}
 
-	if !offline {
+	if online {
 		cli2, _ := dialer.Login(wsurl, "test2")
 
 		go func() {
@@ -27,10 +30,15 @@ func usertalk(wsurl, appSecret string, count int, offline bool) error {
 			}
 		}()
 	}
+	r := report.New(os.Stdout, count)
 	t1 := time.Now()
+
+	requests := make(map[uint32]time.Time, count)
 	go func() {
 		for i := 0; i < count; i++ {
 			p := pkt.New(wire.CommandChatUserTalk, pkt.WithDest("test2"))
+			requests[p.Sequence] = time.Now()
+
 			p.WriteBody(&pkt.MessageReq{
 				Type: 1,
 				Body: "hello world",
@@ -44,12 +52,23 @@ func usertalk(wsurl, appSecret string, count int, offline bool) error {
 	}()
 
 	for i := 0; i < count; i++ {
-		_, err := cli1.Read()
+		frame, err := cli1.Read()
 		if err != nil {
-			return err
+			r.Add(&report.Result{
+				Err:           err,
+				ContentLength: 11,
+			})
+			continue
 		}
+		ack, err := pkt.MustReadLogicPkt(bytes.NewBuffer(frame.GetPayload()))
+		r.Add(&report.Result{
+			Duration:      time.Since(requests[ack.GetSequence()]),
+			Err:           err,
+			ContentLength: 11,
+			StatusCode:    int(ack.GetStatus()),
+		})
 	}
-	dur := time.Since(t1)
-	logger.Infof("send message count %d ; cost time: %v ; tps:%v", count, dur, int64(count*1000)/dur.Milliseconds())
+
+	r.Finalize(time.Since(t1))
 	return nil
 }
