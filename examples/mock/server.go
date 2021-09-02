@@ -2,8 +2,12 @@ package mock
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	_ "net/http/pprof"
+
+	"github.com/felixge/fgprof"
+
 	"time"
 
 	"github.com/klintcheng/kim"
@@ -16,8 +20,9 @@ import (
 type ServerDemo struct{}
 
 func (s *ServerDemo) Start(id, protocol, addr string) {
+	http.DefaultServeMux.Handle("/debug/fgprof", fgprof.Handler())
 	go func() {
-		_ = http.ListenAndServe("0.0.0.0:6060", nil)
+		log.Println(http.ListenAndServe(":6060", nil))
 	}()
 
 	var srv kim.Server
