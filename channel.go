@@ -98,6 +98,7 @@ func (ch *ChannelImpl) WriteFrame(code OpCode, payload []byte) error {
 func (ch *ChannelImpl) Close() error {
 	ch.once.Do(func() {
 		ch.closed.Fire()
+		close(ch.writechan)
 	})
 	return nil
 }

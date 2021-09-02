@@ -1,4 +1,4 @@
-package throughput
+package kimbench
 
 import (
 	"context"
@@ -13,18 +13,20 @@ type Options struct {
 	Addr      string
 	AppSecret string
 	Count     int
+	Threads   int
 }
 
 // NewCmd NewCmd
 func NewBenchmarkCmd(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "benchmark",
-		Short: "start client",
+		Short: "kim benchmark tools",
 	}
 	var opts = &Options{}
 	cmd.PersistentFlags().StringVarP(&opts.Addr, "address", "a", "ws://124.71.204.19:8000", "server address")
 	cmd.PersistentFlags().StringVarP(&opts.AppSecret, "appSecret", "s", token.DefaultSecret, "app secret")
-	cmd.PersistentFlags().IntVarP(&opts.Count, "number", "n", 100, "message number")
+	cmd.PersistentFlags().IntVarP(&opts.Count, "count", "c", 100, "request count")
+	cmd.PersistentFlags().IntVarP(&opts.Threads, "thread", "t", 10, "thread count")
 
 	cmd.AddCommand(NewUserTalkCmd(opts))
 	cmd.AddCommand(NewGroupTalkCmd(opts))
@@ -33,17 +35,16 @@ func NewBenchmarkCmd(ctx context.Context) *cobra.Command {
 }
 
 type UserOptions struct {
-	Offline bool
+	online bool
 }
 
 func NewUserTalkCmd(opts *Options) *cobra.Command {
 	var options = &UserOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "user",
-		Short: "u",
+		Use: "user",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := usertalk(opts.Addr, opts.AppSecret, opts.Count, options.Offline)
+			err := usertalk(opts.Addr, opts.AppSecret, opts.Threads, opts.Count, options.online)
 			if err != nil {
 				return err
 			}
@@ -51,7 +52,7 @@ func NewUserTalkCmd(opts *Options) *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().BoolVarP(&options.Offline, "offline", "o", true, "receiver offline")
+	cmd.PersistentFlags().BoolVarP(&options.online, "online", "o", false, "set if receiver is online")
 	return cmd
 }
 
@@ -62,10 +63,9 @@ type LoginOptions struct {
 func NewLoginCmd(opts *Options) *cobra.Command {
 	var options = &LoginOptions{}
 	cmd := &cobra.Command{
-		Use:   "login",
-		Short: "lo",
+		Use: "login",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := login(opts.Addr, opts.AppSecret, opts.Count, options.keep)
+			err := login(opts.Addr, opts.AppSecret, opts.Threads, opts.Count, options.keep)
 			if err != nil {
 				return err
 			}
@@ -85,10 +85,9 @@ func NewGroupTalkCmd(opts *Options) *cobra.Command {
 	var options = &GroupOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "group",
-		Short: "gp",
+		Use: "group",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := grouptalk(opts.Addr, opts.AppSecret, opts.Count, options.MemberCount, options.OnlinePercent)
+			err := grouptalk(opts.Addr, opts.AppSecret, opts.Threads, opts.Count, options.MemberCount, options.OnlinePercent)
 			if err != nil {
 				return err
 			}
@@ -97,6 +96,6 @@ func NewGroupTalkCmd(opts *Options) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().IntVarP(&options.MemberCount, "memcount", "m", 20, "member count")
-	cmd.PersistentFlags().Float32VarP(&options.OnlinePercent, "percet", "p", 0.2, "online percet")
+	cmd.PersistentFlags().Float32VarP(&options.OnlinePercent, "percet", "p", 0.5, "online percet")
 	return cmd
 }

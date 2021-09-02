@@ -14,6 +14,8 @@ import (
 	"github.com/panjf2000/ants/v2"
 )
 
+const wsurl = "ws://localhost:8000"
+
 func Test_Parallel(t *testing.T) {
 	const count = 10000
 	gpool, _ := ants.NewPool(50, ants.WithPreAlloc(true))
