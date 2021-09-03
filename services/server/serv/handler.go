@@ -88,7 +88,8 @@ func RespErr(ag kim.Agent, p *pkt.LogicPkt, status pkt.Status) error {
 	packet.Status = status
 	packet.Flag = pkt.Flag_Response
 
-	return ag.Push(pkt.Marshal(packet))
+	p.AddStringMeta(wire.MetaDestChannels, p.Header.ChannelId)
+	return container.Push(ag.ID(), p)
 }
 
 type ServerDispather struct {
