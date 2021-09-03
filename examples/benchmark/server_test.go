@@ -55,7 +55,7 @@ func Test_Parallel(t *testing.T) {
 }
 
 func Test_Message(t *testing.T) {
-	const count = 50000
+	const count = 1000 * 100
 	cli := websocket.NewClient(fmt.Sprintf("test_%v", 1), "client", websocket.ClientOptions{
 		Heartbeat: kim.DefaultHeartbeat,
 	})
@@ -67,7 +67,7 @@ func Test_Message(t *testing.T) {
 	if err != nil {
 		logger.Error(err)
 	}
-	msg := []byte(strings.Repeat("hello", 1000))
+	msg := []byte(strings.Repeat("hello", 10))
 	t0 := time.Now()
 	go func() {
 		for i := 0; i < count; i++ {
