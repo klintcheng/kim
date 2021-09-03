@@ -56,9 +56,6 @@ func Test_Parallel(t *testing.T) {
 
 func Test_Message(t *testing.T) {
 	const count = 50000
-	gpool, _ := ants.NewPool(100, ants.WithPreAlloc(true))
-	defer gpool.Release()
-
 	cli := websocket.NewClient(fmt.Sprintf("test_%v", 1), "client", websocket.ClientOptions{
 		Heartbeat: kim.DefaultHeartbeat,
 	})
@@ -72,16 +69,16 @@ func Test_Message(t *testing.T) {
 	}
 	msg := []byte(strings.Repeat("hello", 1000))
 	t0 := time.Now()
-	for i := 0; i < count; i++ {
-		_ = gpool.Submit(func() {
+	go func() {
+		for i := 0; i < count; i++ {
 			_ = cli.Send(msg)
-		})
-	}
+		}
+	}()
 	recv := 0
 	for {
 		frame, err := cli.Read()
 		if err != nil {
-			logger.Info(err)
+			logger.Info("time", time.Now().UnixNano(), err)
 			break
 		}
 		if frame.GetOpCode() != kim.OpBinary {
