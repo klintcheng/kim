@@ -28,7 +28,7 @@ func NewChannel(id string, conn Conn, gpool *ants.Pool) Channel {
 	ch := &ChannelImpl{
 		id:        id,
 		Conn:      conn,
-		writechan: make(chan []byte, 5),
+		writechan: make(chan []byte, 10),
 		closed:    NewEvent(),
 		writeWait: DefaultWriteWait, //default value
 		readwait:  DefaultReadWait,
@@ -47,9 +47,6 @@ func NewChannel(id string, conn Conn, gpool *ants.Pool) Channel {
 }
 
 func (ch *ChannelImpl) writeloop() error {
-	defer func() {
-		close(ch.writechan)
-	}()
 	for {
 		select {
 		case payload := <-ch.writechan:
@@ -65,6 +62,7 @@ func (ch *ChannelImpl) writeloop() error {
 					return err
 				}
 			}
+			_ = ch.Conn.SetWriteDeadline(time.Now().Add(ch.writeWait))
 			err = ch.Flush()
 			if err != nil {
 				return err
@@ -86,12 +84,6 @@ func (ch *ChannelImpl) Push(payload []byte) error {
 	// 异步写
 	ch.writechan <- payload
 	return nil
-}
-
-// overwrite Conn
-func (ch *ChannelImpl) WriteFrame(code OpCode, payload []byte) error {
-	_ = ch.Conn.SetWriteDeadline(time.Now().Add(ch.writeWait))
-	return ch.Conn.WriteFrame(code, payload)
 }
 
 // Close 关闭连接
@@ -145,11 +137,12 @@ func (ch *ChannelImpl) Readloop(lst MessageListener) error {
 		if len(payload) == 0 {
 			continue
 		}
-		err = ch.gpool.Submit(func() {
-			lst.Receive(ch, payload)
-		})
-		if err != nil {
-			return err
-		}
+		go lst.Receive(ch, payload)
+		// err = ch.gpool.Submit(func() {
+		// 	lst.Receive(ch, payload)
+		// })
+		// if err != nil {
+		// 	return err
+		// }
 	}
 }

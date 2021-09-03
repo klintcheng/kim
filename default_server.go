@@ -13,7 +13,6 @@ import (
 	"github.com/gobwas/pool/pbufio"
 	"github.com/gobwas/ws"
 	"github.com/klintcheng/kim/logger"
-	"github.com/panjf2000/ants/v2"
 	"github.com/segmentio/ksuid"
 )
 
@@ -102,13 +101,13 @@ func (s *DefaultServer) Start() error {
 	if err != nil {
 		return err
 	}
-	rpool, _ := ants.NewPool(s.options.MessageGPool, ants.WithPreAlloc(true))
-	// 采用非阻塞模式，当worker不够时，新进来的连接被断开。
-	cpool, _ := ants.NewPool(s.options.ConnectionGPool, ants.WithPreAlloc(true), ants.WithNonblocking(true))
-	defer func() {
-		rpool.Release()
-		cpool.Release()
-	}()
+	// rpool, _ := ants.NewPool(s.options.MessageGPool, ants.WithPreAlloc(true))
+	// // 采用非阻塞模式，当worker不够时，新进来的连接被断开。
+	// cpool, _ := ants.NewPool(s.options.ConnectionGPool, ants.WithPreAlloc(true), ants.WithNonblocking(true))
+	// defer func() {
+	// 	rpool.Release()
+	// 	cpool.Release()
+	// }()
 	log.Info("started")
 
 	for {
@@ -118,7 +117,7 @@ func (s *DefaultServer) Start() error {
 			log.Warn(err)
 			continue
 		}
-		task := func() {
+		task := func(rawconn net.Conn) {
 			if atomic.LoadInt32(&s.quit) == 1 {
 				return
 			}
@@ -149,7 +148,7 @@ func (s *DefaultServer) Start() error {
 				return
 			}
 
-			channel := NewChannel(id, conn, rpool)
+			channel := NewChannel(id, conn, nil)
 			channel.SetReadWait(s.options.Readwait)
 			channel.SetWriteWait(s.options.Writewait)
 
@@ -164,13 +163,13 @@ func (s *DefaultServer) Start() error {
 			_ = s.Disconnect(channel.ID())
 			channel.Close()
 		}
-
-		err = cpool.Submit(task)
-		if err != nil { // ErrPoolOverload
-			rawconn.Close()
-			log.Warn(err)
-			continue
-		}
+		go task(rawconn)
+		// err = cpool.Submit(task)
+		// if err != nil { // ErrPoolOverload
+		// 	rawconn.Close()
+		// 	log.Warn(err)
+		// 	continue
+		// }
 		if atomic.LoadInt32(&s.quit) == 1 {
 			break
 		}
