@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -48,7 +49,6 @@ func NewServer(listen string, service kim.ServiceRegistration) kim.Server {
 
 // Start server
 func (s *Server) Start() error {
-	mux := http.NewServeMux()
 	log := logger.WithFields(logger.Fields{
 		"module": "ws.server",
 		"listen": s.listen,
@@ -65,53 +65,54 @@ func (s *Server) Start() error {
 		s.ChannelMap = kim.NewChannels(100)
 	}
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// step 1
-		rawconn, _, _, err := ws.UpgradeHTTP(r, w)
+	lst, err := net.Listen("tcp", s.listen)
+	if err != nil {
+		return err
+	}
+	log.Info("started")
+	for {
+		rawconn, err := lst.Accept()
 		if err != nil {
-			resp(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		// step 2 包装conn
-		conn := NewConn(rawconn)
-		// step 3
-		id, err := s.Accept(conn, s.options.loginwait)
-		if err != nil {
+			rawconn.Close()
 			log.Warn(err)
-			_ = conn.WriteFrame(kim.OpClose, []byte(err.Error()))
-			conn.Close()
-			return
+			continue
 		}
-		if _, ok := s.Get(id); ok {
-			log.Warnf("channel %s existed", id)
-			_ = conn.WriteFrame(kim.OpClose, []byte("channelId is repeated"))
-			conn.Close()
-			return
+		_, err = ws.Upgrade(rawconn)
+		if err != nil {
+			rawconn.Close()
+			log.Warn(err)
+			continue
 		}
-		// step 4
-		channel := kim.NewChannel(id, conn)
-		channel.SetWriteWait(s.options.writewait)
-		channel.SetReadWait(s.options.readwait)
-		s.Add(channel)
+		go func(rawconn net.Conn) {
+			conn := NewConn(rawconn)
 
-		go func(ch kim.Channel) {
-			// step 5
-			err := ch.Readloop(s.MessageListener)
+			id, err := s.Accept(conn, s.options.loginwait)
+			if err != nil {
+				_ = conn.WriteFrame(kim.OpClose, []byte(err.Error()))
+				conn.Close()
+				return
+			}
+			if _, ok := s.Get(id); ok {
+				log.Warnf("channel %s existed", id)
+				_ = conn.WriteFrame(kim.OpClose, []byte("channelId is repeated"))
+				conn.Close()
+				return
+			}
+
+			channel := kim.NewChannel(id, conn)
+			channel.SetReadWait(s.options.readwait)
+			channel.SetWriteWait(s.options.writewait)
+
+			s.Add(channel)
+			err = channel.Readloop(s.MessageListener)
 			if err != nil {
 				log.Info(err)
 			}
-			// step 6
-			s.Remove(ch.ID())
-			err = s.Disconnect(ch.ID())
-			if err != nil {
-				log.Warn(err)
-			}
-			ch.Close()
-		}(channel)
-	})
-	log.Infoln("started")
-	return http.ListenAndServe(s.listen, mux)
+			s.Remove(channel.ID())
+			_ = s.Disconnect(channel.ID())
+			channel.Close()
+		}(rawconn)
+	}
 }
 
 // Shutdown Shutdown

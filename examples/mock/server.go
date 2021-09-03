@@ -2,12 +2,8 @@ package mock
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	_ "net/http/pprof"
-
-	"github.com/felixge/fgprof"
-
 	"time"
 
 	"github.com/klintcheng/kim"
@@ -20,9 +16,8 @@ import (
 type ServerDemo struct{}
 
 func (s *ServerDemo) Start(id, protocol, addr string) {
-	http.DefaultServeMux.Handle("/debug/fgprof", fgprof.Handler())
 	go func() {
-		log.Println(http.ListenAndServe(":6060", nil))
+		logger.Println(http.ListenAndServe(":6060", nil))
 	}()
 
 	var srv kim.Server
@@ -66,7 +61,7 @@ func (h *ServerHandler) Accept(conn kim.Conn, timeout time.Duration) (string, er
 	if userID == "" {
 		return "", errors.New("user id is invalid")
 	}
-	logger.Infof("logined %s", userID)
+	// logger.Debugf("logined %s", userID)
 	return userID, nil
 }
 
