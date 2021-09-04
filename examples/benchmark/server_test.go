@@ -18,7 +18,7 @@ const wsurl = "ws://localhost:8000"
 
 func Test_Parallel(t *testing.T) {
 	const count = 10000
-	gpool, _ := ants.NewPool(50, ants.WithPreAlloc(true))
+	gpool, _ := ants.NewPool(100, ants.WithPreAlloc(true))
 	defer gpool.Release()
 	var wg sync.WaitGroup
 	wg.Add(count)

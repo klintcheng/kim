@@ -6,8 +6,6 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	"github.com/felixge/fgprof"
-
 	"time"
 
 	"github.com/klintcheng/kim"
@@ -20,7 +18,6 @@ import (
 type ServerDemo struct{}
 
 func (s *ServerDemo) Start(id, protocol, addr string) {
-	http.DefaultServeMux.Handle("/debug/fgprof", fgprof.Handler())
 	go func() {
 		log.Println(http.ListenAndServe(":6060", nil))
 	}()
