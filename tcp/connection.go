@@ -44,11 +44,11 @@ type TcpConn struct {
 
 // NewConn NewConn
 
-func NewConn(conn net.Conn) *TcpConn {
+func NewConn(conn net.Conn) kim.Conn {
 	return &TcpConn{
 		Conn: conn,
-		rd:   bufio.NewReader(conn),
-		wr:   bufio.NewWriter(conn),
+		rd:   bufio.NewReaderSize(conn, 4096),
+		wr:   bufio.NewWriterSize(conn, 1024),
 	}
 }
 

@@ -38,11 +38,11 @@ type WsConn struct {
 	wr *bufio.Writer
 }
 
-func NewConn(conn net.Conn) *WsConn {
+func NewConn(conn net.Conn) kim.Conn {
 	return &WsConn{
 		Conn: conn,
-		rd:   bufio.NewReader(conn),
-		wr:   bufio.NewWriter(conn),
+		rd:   bufio.NewReaderSize(conn, 4096),
+		wr:   bufio.NewWriterSize(conn, 1024),
 	}
 }
 

@@ -137,12 +137,12 @@ func (ch *ChannelImpl) Readloop(lst MessageListener) error {
 		if len(payload) == 0 {
 			continue
 		}
-		go lst.Receive(ch, payload)
-		// err = ch.gpool.Submit(func() {
-		// 	lst.Receive(ch, payload)
-		// })
-		// if err != nil {
-		// 	return err
-		// }
+
+		err = ch.gpool.Submit(func() {
+			lst.Receive(ch, payload)
+		})
+		if err != nil {
+			return err
+		}
 	}
 }

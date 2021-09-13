@@ -10,7 +10,6 @@ import (
 	"github.com/klintcheng/kim"
 	"github.com/klintcheng/kim/examples/mock"
 	"github.com/klintcheng/kim/logger"
-	"github.com/klintcheng/kim/tcp"
 	"github.com/klintcheng/kim/websocket"
 	"github.com/panjf2000/ants/v2"
 )
@@ -57,7 +56,7 @@ func Test_Parallel(t *testing.T) {
 
 func Test_Message(t *testing.T) {
 	const count = 1000 * 100
-	cli := tcp.NewClient(fmt.Sprintf("test_%v", 1), "client", tcp.ClientOptions{
+	cli := websocket.NewClient(fmt.Sprintf("test_%v", 1), "client", websocket.ClientOptions{
 		Heartbeat: kim.DefaultHeartbeat,
 	})
 	// set dialer

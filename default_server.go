@@ -13,6 +13,7 @@ import (
 	"github.com/gobwas/pool/pbufio"
 	"github.com/gobwas/ws"
 	"github.com/klintcheng/kim/logger"
+	"github.com/panjf2000/ants/v2"
 	"github.com/segmentio/ksuid"
 )
 
@@ -65,7 +66,7 @@ func NewServer(listen string, service ServiceRegistration, upgrader Upgrader, op
 		Readwait:        DefaultReadWait,
 		Writewait:       DefaultWriteWait,
 		MessageGPool:    DefaultMessageReadPool,
-		ConnectionGPool: DefaultUpgradeConnectionPool,
+		ConnectionGPool: DefaultConnectionPool,
 	}
 	for _, option := range options {
 		option(defaultOpts)
@@ -101,23 +102,23 @@ func (s *DefaultServer) Start() error {
 	if err != nil {
 		return err
 	}
-	// rpool, _ := ants.NewPool(s.options.MessageGPool, ants.WithPreAlloc(true))
-	// // 采用非阻塞模式，当worker不够时，新进来的连接被断开。
-	// cpool, _ := ants.NewPool(s.options.ConnectionGPool, ants.WithPreAlloc(true), ants.WithNonblocking(true))
-	// defer func() {
-	// 	rpool.Release()
-	// 	cpool.Release()
-	// }()
+	// 采用协程池来增加复用
+	rpool, _ := ants.NewPool(s.options.MessageGPool)
+	defer func() {
+		rpool.Release()
+	}()
 	log.Info("started")
 
 	for {
 		rawconn, err := lst.Accept()
 		if err != nil {
-			rawconn.Close()
+			if rawconn != nil {
+				rawconn.Close()
+			}
 			log.Warn(err)
 			continue
 		}
-		task := func(rawconn net.Conn) {
+		run := func(rawconn net.Conn) {
 			if atomic.LoadInt32(&s.quit) == 1 {
 				return
 			}
@@ -127,14 +128,12 @@ func (s *DefaultServer) Start() error {
 				pbufio.PutReader(rd)
 				pbufio.PutWriter(wr)
 			}()
-
 			conn, err := s.Upgrade(rawconn, rd, wr)
 			if err != nil {
 				log.Info(err)
 				conn.Close()
 				return
 			}
-
 			id, err := s.Accept(conn, s.options.Loginwait)
 			if err != nil {
 				_ = conn.WriteFrame(OpClose, []byte(err.Error()))
@@ -148,7 +147,7 @@ func (s *DefaultServer) Start() error {
 				return
 			}
 
-			channel := NewChannel(id, conn, nil)
+			channel := NewChannel(id, conn, rpool)
 			channel.SetReadWait(s.options.Readwait)
 			channel.SetWriteWait(s.options.Writewait)
 
@@ -163,13 +162,9 @@ func (s *DefaultServer) Start() error {
 			_ = s.Disconnect(channel.ID())
 			channel.Close()
 		}
-		go task(rawconn)
-		// err = cpool.Submit(task)
-		// if err != nil { // ErrPoolOverload
-		// 	rawconn.Close()
-		// 	log.Warn(err)
-		// 	continue
-		// }
+
+		go run(rawconn)
+
 		if atomic.LoadInt32(&s.quit) == 1 {
 			break
 		}
