@@ -35,8 +35,6 @@ func NewServHandler(r *kim.Router, cache kim.SessionStorage) *ServHandler {
 
 // Accept this connection
 func (h *ServHandler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
-	log.Infoln("enter")
-
 	_ = conn.SetReadDeadline(time.Now().Add(timeout))
 	frame, err := conn.ReadFrame()
 	if err != nil {
@@ -90,7 +88,8 @@ func RespErr(ag kim.Agent, p *pkt.LogicPkt, status pkt.Status) error {
 	packet.Status = status
 	packet.Flag = pkt.Flag_Response
 
-	return ag.Push(pkt.Marshal(packet))
+	p.AddStringMeta(wire.MetaDestChannels, p.Header.ChannelId)
+	return container.Push(ag.ID(), p)
 }
 
 type ServerDispather struct {

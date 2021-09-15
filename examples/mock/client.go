@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"time"
 
@@ -35,11 +36,11 @@ func (c *ClientDemo) Start(userID, protocol, addr string) {
 	if err != nil {
 		logger.Error(err)
 	}
-	count := 5
+	count := 10
 	go func() {
 		// step3: 发送消息然后退出
 		for i := 0; i < count; i++ {
-			err := cli.Send([]byte("hello"))
+			err := cli.Send([]byte(fmt.Sprintf("hello_%d", i)))
 			if err != nil {
 				logger.Error(err)
 				return

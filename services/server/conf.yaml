@@ -7,3 +7,5 @@ Tags:
 ConsulURL: localhost:8500
 RedisAddrs: localhost:6379
 RoyalURL: http://localhost:8080
+MessageGPool: 5000
+ConnectionGPool: 500

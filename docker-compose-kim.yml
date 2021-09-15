@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   royal:
-    image: docker.io/dockerklint/kim_royal:latest
+    image: docker.io/dockerklint/kim_royal:v1.4
     container_name: royal
     restart: always
     networks: 
@@ -18,7 +18,7 @@ services:
       KIM_MESSAGEDB: root:123456@tcp(mysql:3306)/kim_message?charset=utf8mb4&parseTime=True&loc=Local
       KIM_LOGLEVEL: DEBUG
   gateway:
-    image: docker.io/dockerklint/kim_gateway:latest
+    image: docker.io/dockerklint/kim_gateway:v1.4
     container_name: wgateway
     restart: always
     networks: 
@@ -33,7 +33,7 @@ services:
       KIM_CONSULURL: consul:8500
       KIM_LOGLEVEL: DEBUG
   server:
-    image: docker.io/dockerklint/kim_server:latest
+    image: docker.io/dockerklint/kim_server:v1.4
     container_name: chat
     restart: always
     networks: 

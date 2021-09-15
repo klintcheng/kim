@@ -16,7 +16,6 @@ type ChannelMap interface {
 
 // ChannelsImpl ChannelMap
 type ChannelsImpl struct {
-	// TODO: Optimization point
 	channels *sync.Map
 }
 

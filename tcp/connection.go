@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"bufio"
 	"io"
 	"net"
 
@@ -37,22 +38,35 @@ func (f *Frame) GetPayload() []byte {
 // Conn Conn
 type TcpConn struct {
 	net.Conn
+	rd *bufio.Reader
+	wr *bufio.Writer
 }
 
 // NewConn NewConn
-func NewConn(conn net.Conn) *TcpConn {
+
+func NewConn(conn net.Conn) kim.Conn {
 	return &TcpConn{
 		Conn: conn,
+		rd:   bufio.NewReaderSize(conn, 4096),
+		wr:   bufio.NewWriterSize(conn, 1024),
+	}
+}
+
+func NewConnWithRW(conn net.Conn, rd *bufio.Reader, wr *bufio.Writer) *TcpConn {
+	return &TcpConn{
+		Conn: conn,
+		rd:   rd,
+		wr:   wr,
 	}
 }
 
 // ReadFrame ReadFrame
 func (c *TcpConn) ReadFrame() (kim.Frame, error) {
-	opcode, err := endian.ReadUint8(c.Conn)
+	opcode, err := endian.ReadUint8(c.rd)
 	if err != nil {
 		return nil, err
 	}
-	payload, err := endian.ReadBytes(c.Conn)
+	payload, err := endian.ReadBytes(c.rd)
 	if err != nil {
 		return nil, err
 	}
@@ -64,12 +78,12 @@ func (c *TcpConn) ReadFrame() (kim.Frame, error) {
 
 // WriteFrame WriteFrame
 func (c *TcpConn) WriteFrame(code kim.OpCode, payload []byte) error {
-	return WriteFrame(c.Conn, code, payload)
+	return WriteFrame(c.wr, code, payload)
 }
 
 // Flush Flush
 func (c *TcpConn) Flush() error {
-	return nil
+	return c.wr.Flush()
 }
 
 // WriteFrame write a frame to w

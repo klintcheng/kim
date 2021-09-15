@@ -46,7 +46,7 @@ func Test_Parallel(t *testing.T) {
 	wg.Wait()
 	t.Logf("logined %d cost %v", count, time.Since(t0))
 	t.Logf("done connecting")
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 5)
 	t.Logf("closed")
 
 	for i := 0; i < count; i++ {
@@ -55,10 +55,7 @@ func Test_Parallel(t *testing.T) {
 }
 
 func Test_Message(t *testing.T) {
-	const count = 10000
-	gpool, _ := ants.NewPool(50, ants.WithPreAlloc(true))
-	defer gpool.Release()
-
+	const count = 1000 * 100
 	cli := websocket.NewClient(fmt.Sprintf("test_%v", 1), "client", websocket.ClientOptions{
 		Heartbeat: kim.DefaultHeartbeat,
 	})
@@ -70,18 +67,18 @@ func Test_Message(t *testing.T) {
 	if err != nil {
 		logger.Error(err)
 	}
-	msg := []byte(strings.Repeat("hello", 1000))
+	msg := []byte(strings.Repeat("hello", 10))
 	t0 := time.Now()
-	for i := 0; i < count; i++ {
-		_ = gpool.Submit(func() {
+	go func() {
+		for i := 0; i < count; i++ {
 			_ = cli.Send(msg)
-		})
-	}
+		}
+	}()
 	recv := 0
 	for {
 		frame, err := cli.Read()
 		if err != nil {
-			logger.Info(err)
+			logger.Info("time", time.Now().UnixNano(), err)
 			break
 		}
 		if frame.GetOpCode() != kim.OpBinary {
