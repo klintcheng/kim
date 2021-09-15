@@ -138,7 +138,8 @@ func (s *DefaultServer) connHandler(rawconn net.Conn, gpool *ants.Pool) {
 	}()
 	conn, err := s.Upgrade(rawconn, rd, wr)
 	if err != nil {
-		conn.Close()
+		logger.Errorf("Upgrade error: %v", err)
+		rawconn.Close()
 		return
 	}
 	id, err := s.Accept(conn, s.options.Loginwait)
