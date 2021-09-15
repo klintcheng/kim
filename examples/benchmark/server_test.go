@@ -46,7 +46,7 @@ func Test_Parallel(t *testing.T) {
 	wg.Wait()
 	t.Logf("logined %d cost %v", count, time.Since(t0))
 	t.Logf("done connecting")
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 5)
 	t.Logf("closed")
 
 	for i := 0; i < count; i++ {
