@@ -103,9 +103,9 @@ func (s *DefaultServer) Start() error {
 		return err
 	}
 	// 采用协程池来增加复用
-	rpool, _ := ants.NewPool(s.options.MessageGPool)
+	mgpool, _ := ants.NewPool(s.options.MessageGPool, ants.WithPreAlloc(true))
 	defer func() {
-		rpool.Release()
+		mgpool.Release()
 	}()
 	log.Info("started")
 
@@ -118,52 +118,8 @@ func (s *DefaultServer) Start() error {
 			log.Warn(err)
 			continue
 		}
-		run := func(rawconn net.Conn) {
-			if atomic.LoadInt32(&s.quit) == 1 {
-				return
-			}
-			rd := pbufio.GetReader(rawconn, ws.DefaultServerReadBufferSize)
-			wr := pbufio.GetWriter(rawconn, ws.DefaultServerWriteBufferSize)
-			defer func() {
-				pbufio.PutReader(rd)
-				pbufio.PutWriter(wr)
-			}()
-			conn, err := s.Upgrade(rawconn, rd, wr)
-			if err != nil {
-				log.Info(err)
-				conn.Close()
-				return
-			}
-			id, err := s.Accept(conn, s.options.Loginwait)
-			if err != nil {
-				_ = conn.WriteFrame(OpClose, []byte(err.Error()))
-				conn.Close()
-				return
-			}
 
-			if _, ok := s.Get(id); ok {
-				_ = conn.WriteFrame(OpClose, []byte("channelId is repeated"))
-				conn.Close()
-				return
-			}
-
-			channel := NewChannel(id, conn, rpool)
-			channel.SetReadWait(s.options.Readwait)
-			channel.SetWriteWait(s.options.Writewait)
-
-			s.Add(channel)
-
-			log.Infof("accept channel - ID: %s RemoteAddr: %s", channel.ID(), channel.RemoteAddr())
-			err = channel.Readloop(s.MessageListener)
-			if err != nil {
-				log.Info(err)
-			}
-			s.Remove(channel.ID())
-			_ = s.Disconnect(channel.ID())
-			channel.Close()
-		}
-
-		go run(rawconn)
+		go s.connHandler(rawconn, mgpool)
 
 		if atomic.LoadInt32(&s.quit) == 1 {
 			break
@@ -171,6 +127,47 @@ func (s *DefaultServer) Start() error {
 	}
 	log.Info("quit")
 	return nil
+}
+
+func (s *DefaultServer) connHandler(rawconn net.Conn, gpool *ants.Pool) {
+	rd := pbufio.GetReader(rawconn, ws.DefaultServerReadBufferSize)
+	wr := pbufio.GetWriter(rawconn, ws.DefaultServerWriteBufferSize)
+	defer func() {
+		pbufio.PutReader(rd)
+		pbufio.PutWriter(wr)
+	}()
+	conn, err := s.Upgrade(rawconn, rd, wr)
+	if err != nil {
+		conn.Close()
+		return
+	}
+	id, err := s.Accept(conn, s.options.Loginwait)
+	if err != nil {
+		_ = conn.WriteFrame(OpClose, []byte(err.Error()))
+		conn.Close()
+		return
+	}
+
+	if _, ok := s.Get(id); ok {
+		_ = conn.WriteFrame(OpClose, []byte("channelId is repeated"))
+		conn.Close()
+		return
+	}
+
+	channel := NewChannel(id, conn, gpool)
+	channel.SetReadWait(s.options.Readwait)
+	channel.SetWriteWait(s.options.Writewait)
+
+	s.Add(channel)
+
+	logger.Infof("accept channel - ID: %s RemoteAddr: %s", channel.ID(), channel.RemoteAddr())
+	err = channel.Readloop(s.MessageListener)
+	if err != nil {
+		logger.Info(err)
+	}
+	s.Remove(channel.ID())
+	_ = s.Disconnect(channel.ID())
+	channel.Close()
 }
 
 // Shutdown Shutdown
