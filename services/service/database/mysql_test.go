@@ -12,7 +12,7 @@ var db *gorm.DB
 var idgen *IDGenerator
 
 func init() {
-	db, _ = InitMysqlDb("root:123456@tcp(127.0.0.1:3306)/kim_message?charset=utf8mb4&parseTime=True&loc=Local")
+	db, _ = InitDb("sqlite", "msg.db")
 
 	_ = db.AutoMigrate(&MessageIndex{})
 	_ = db.AutoMigrate(&MessageContent{})
@@ -21,7 +21,6 @@ func init() {
 }
 
 func Benchmark_insert(b *testing.B) {
-
 	sendTime := time.Now().UnixNano()
 	b.ResetTimer()
 	b.SetBytes(1024)

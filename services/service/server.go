@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"hash/crc32"
 
+	"gorm.io/gorm"
+
 	"github.com/kataras/iris/v12"
 	"github.com/klintcheng/kim/logger"
 	"github.com/klintcheng/kim/naming"
@@ -48,16 +50,20 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	})
 
 	// database.Init
-	db, err := database.InitMysqlDb(config.BaseDb)
+	var (
+		baseDb    *gorm.DB
+		messageDb *gorm.DB
+	)
+	baseDb, err = database.InitDb(config.Driver, config.BaseDb)
 	if err != nil {
 		return err
 	}
-	_ = db.AutoMigrate(&database.Group{}, &database.GroupMember{})
+	messageDb, err = database.InitDb(config.Driver, config.MessageDb)
+	if err != nil {
+		return err
+	}
 
-	messageDb, err := database.InitMysqlDb(config.MessageDb)
-	if err != nil {
-		return err
-	}
+	_ = baseDb.AutoMigrate(&database.Group{}, &database.GroupMember{})
 	_ = messageDb.AutoMigrate(&database.MessageIndex{}, &database.MessageContent{})
 
 	if config.NodeID == 0 {
@@ -92,7 +98,7 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		_ = ns.Deregister(config.ServiceID)
 	}()
 	serviceHandler := handler.ServiceHandler{
-		BaseDb:    db,
+		BaseDb:    baseDb,
 		MessageDb: messageDb,
 		Idgen:     idgen,
 		Cache:     rdb,

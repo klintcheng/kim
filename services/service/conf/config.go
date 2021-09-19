@@ -28,6 +28,7 @@ type Config struct {
 	Tags          []string
 	ConsulURL     string
 	RedisAddrs    string
+	Driver        string `default:"mysql"`
 	BaseDb        string
 	MessageDb     string
 	LogLevel      string `default:"INFO"`
