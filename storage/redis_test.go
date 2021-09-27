@@ -57,9 +57,9 @@ func Benchmark_MGET(b *testing.B) {
 	cli, err := InitRedis("localhost:6379", "")
 	assert.Nil(b, err)
 	cc := NewRedisStorage(cli)
-	count := 100
+	count := 5
 	accounts := make([]string, count)
-	for i := 0; i < 100; i++ {
+	for i := 0; i < count; i++ {
 		accounts[i] = fmt.Sprintf("account_%d", i)
 		err = cc.Add(&pkt.Session{
 			ChannelId: ksuid.New().String(),
