@@ -103,8 +103,7 @@ func EnableMonitor(listen string) {
 func SetSelector(selector Selector) {
 	c.selector = selector
 }
-
-// SetServiceNaming SetServiceNaming
+// SetServiceNaming
 func SetServiceNaming(nm naming.Naming) {
 	c.Naming = nm
 }

@@ -49,15 +49,15 @@ type Server interface {
 	SetStateListener(StateListener)
 	// SetReadWait 设置读超时
 	SetReadWait(time.Duration)
-	// ChannelMap 设置Channel管理服务
+	// SetChannelMap 设置Channel管理服务
 	SetChannelMap(ChannelMap)
 
 	// Start 用于在内部实现网络端口的监听和接收连接，
 	// 并完成一个Channel的初始化过程。
 	Start() error
-	// Push消息到指定的Channel中
-	// 	string channelID
-	// 	[]byte 序列化之后的消息数据
+	// Push 消息到指定的Channel中
+	//  string channelID
+	//  []byte 序列化之后的消息数据
 	Push(string, []byte) error
 	// Shutdown 服务下线，关闭连接
 	Shutdown(context.Context) error
@@ -66,7 +66,7 @@ type Server interface {
 // Acceptor 连接接收器
 type Acceptor interface {
 	// Accept 返回一个握手完成的Channel对象或者一个error。
-	// 业务层需要处理不同协议和网络环境的下连接握手协议
+	// 业务层需要处理不同协议和网络环境下的连接握手协议
 	Accept(Conn, time.Duration) (string, error)
 }
 
