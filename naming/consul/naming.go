@@ -26,8 +26,8 @@ type Watch struct {
 
 type Naming struct {
 	sync.RWMutex
-	cli    *api.Client
-	watchs map[string]*Watch
+	cli     *api.Client
+	watches map[string]*Watch
 }
 
 func NewNaming(consulUrl string) (naming.Naming, error) {
@@ -38,8 +38,8 @@ func NewNaming(consulUrl string) (naming.Naming, error) {
 		return nil, err
 	}
 	naming := &Naming{
-		cli:    cli,
-		watchs: make(map[string]*Watch, 1),
+		cli:     cli,
+		watches: make(map[string]*Watch, 1),
 	}
 
 	return naming, nil
@@ -122,7 +122,7 @@ func (n *Naming) Deregister(serviceID string) error {
 func (n *Naming) Subscribe(serviceName string, callback func([]kim.ServiceRegistration)) error {
 	n.Lock()
 	defer n.Unlock()
-	if _, ok := n.watchs[serviceName]; ok {
+	if _, ok := n.watches[serviceName]; ok {
 		return errors.New("serviceName has already been registered")
 	}
 	w := &Watch{
@@ -130,7 +130,7 @@ func (n *Naming) Subscribe(serviceName string, callback func([]kim.ServiceRegist
 		Callback: callback,
 		Quit:     make(chan struct{}, 1),
 	}
-	n.watchs[serviceName] = w
+	n.watches[serviceName] = w
 
 	go n.watch(w)
 	return nil
@@ -139,9 +139,9 @@ func (n *Naming) Subscribe(serviceName string, callback func([]kim.ServiceRegist
 func (n *Naming) Unsubscribe(serviceName string) error {
 	n.Lock()
 	defer n.Unlock()
-	wh, ok := n.watchs[serviceName]
+	wh, ok := n.watches[serviceName]
 
-	delete(n.watchs, serviceName)
+	delete(n.watches, serviceName)
 	if ok {
 		close(wh.Quit)
 	}
@@ -152,7 +152,7 @@ func (n *Naming) watch(wh *Watch) {
 	stopped := false
 
 	var doWatch = func(service string, callback func([]kim.ServiceRegistration)) {
-		services, meta, err := n.load(service, wh.WaitIndex) // <-- blocking untill services has changed
+		services, meta, err := n.load(service, wh.WaitIndex) // <-- blocking until services has changed
 		if err != nil {
 			logger.Warn(err)
 			return

@@ -35,7 +35,7 @@ func (f *Frame) GetPayload() []byte {
 	return f.Payload
 }
 
-// Conn Conn
+// TcpConn Conn
 type TcpConn struct {
 	net.Conn
 	rd *bufio.Reader

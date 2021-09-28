@@ -71,7 +71,7 @@ func (ch *ChannelImpl) writeloop() error {
 // ID id simpling server
 func (ch *ChannelImpl) ID() string { return ch.id }
 
-// Send 异步写数据
+// Push 异步写数据
 func (ch *ChannelImpl) Push(payload []byte) error {
 	if atomic.LoadInt32(&ch.state) != 1 {
 		return fmt.Errorf("channel %s has closed", ch.id)

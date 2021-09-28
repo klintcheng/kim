@@ -40,7 +40,7 @@ func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
 		log.Error(err)
 		return "", err
 	}
-	// 2. 必须是登陆包
+	// 2. 必须是登录包
 	if req.Command != wire.CommandLoginSignIn {
 		resp := pkt.NewFrom(&req.Header)
 		resp.Status = pkt.Status_InvalidCommand
