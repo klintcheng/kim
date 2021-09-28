@@ -12,6 +12,10 @@ King IM CLoud
 
 [![book](./book.png)](https://juejin.cn/book/6963277002044342311)
 
+- Web SDK： [Typescript SDK](https://github.com/klintcheng/kim_web_sdk)
+- Flutter SDK： [Flutter SDK](https://github.com/szhua/KimSdk)
+  - 由[@szhua](https://github.com/szhua)小友提供
+
 ## 环境准备
 
 1. 安装docker
