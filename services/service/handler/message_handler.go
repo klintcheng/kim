@@ -46,7 +46,7 @@ func (h *ServiceHandler) insertUserMessage(req *rpc.InsertMessageReq) (int64, er
 	// 扩散写
 	idxs := make([]database.MessageIndex, 2)
 	idxs[0] = database.MessageIndex{
-		ID:        h.Idgen.Next().Int64(),
+		ShardID:   database.HashCode(req.Dest),
 		MessageID: messageId,
 		AccountA:  req.Dest,
 		AccountB:  req.Sender,
@@ -54,7 +54,7 @@ func (h *ServiceHandler) insertUserMessage(req *rpc.InsertMessageReq) (int64, er
 		SendTime:  req.SendTime,
 	}
 	idxs[1] = database.MessageIndex{
-		ID:        h.Idgen.Next().Int64(),
+		ShardID:   database.HashCode(req.Sender),
 		MessageID: messageId,
 		AccountA:  req.Sender,
 		AccountB:  req.Dest,
@@ -105,7 +105,7 @@ func (h *ServiceHandler) insertGroupMessage(req *rpc.InsertMessageReq) (int64, e
 	var idxs = make([]database.MessageIndex, len(members))
 	for i, m := range members {
 		idxs[i] = database.MessageIndex{
-			ID:        h.Idgen.Next().Int64(),
+			ShardID:   database.HashCode(m.Account),
 			MessageID: messageId,
 			AccountA:  m.Account,
 			AccountB:  req.Sender,
