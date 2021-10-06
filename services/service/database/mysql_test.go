@@ -43,3 +43,22 @@ func Benchmark_insert(b *testing.B) {
 		}
 	})
 }
+
+func Test_MessageInsert(t *testing.T) {
+	for i := 0; i < 10000; i++ {
+		sendTime := time.Now().UnixNano()
+		idxs := make([]MessageIndex, 100)
+		cid := idgen.Next().Int64()
+		for i := 0; i < len(idxs); i++ {
+			account := fmt.Sprintf("test_%d", cid)
+			idxs[i] = MessageIndex{
+				ShardID:   HashCode(account),
+				AccountA:  account,
+				AccountB:  fmt.Sprintf("test_%d", i),
+				SendTime:  sendTime,
+				MessageID: cid,
+			}
+		}
+		db.Create(&idxs)
+	}
+}
