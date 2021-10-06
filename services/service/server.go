@@ -64,7 +64,7 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	}
 
 	_ = baseDb.AutoMigrate(&database.Group{}, &database.GroupMember{})
-	_ = messageDb.AutoMigrate(&database.MessageIndex{}, &database.MessageContent{})
+	_ = messageDb.AutoMigrate(&database.MessageContent{})
 
 	if config.NodeID == 0 {
 		config.NodeID = int64(HashCode(config.ServiceID))
