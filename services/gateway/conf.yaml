@@ -4,7 +4,8 @@ Listen: ":8000"
 MonitorPort: 8001
 PublicPort: 8000
 Tags:
-  - gate
+  - wgateway
+  - IDC:AHZ_ALI
 ConsulURL: localhost:8500
 AppSecret: ""
 MessageGPool: 5000
