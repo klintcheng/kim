@@ -2,19 +2,23 @@ package router
 
 import (
 	"context"
-	"hash/crc32"
+	"path"
 
 	"github.com/kataras/iris/v12"
-	"github.com/kataras/iris/v12/middleware/recover"
-	"github.com/kataras/iris/v12/middleware/requestid"
 	"github.com/klintcheng/kim/logger"
+	"github.com/klintcheng/kim/naming/consul"
+	"github.com/klintcheng/kim/services/router/apis"
+	"github.com/klintcheng/kim/services/router/config"
+	"github.com/klintcheng/kim/services/router/ipregion"
 	"github.com/klintcheng/kim/services/service/conf"
 	"github.com/spf13/cobra"
 )
 
 // ServerStartOptions ServerStartOptions
 type ServerStartOptions struct {
-	config string
+	Listen    string
+	ConsulURL string
+	Path      string
 }
 
 // NewServerStartCmd creates a new http server command
@@ -28,16 +32,14 @@ func NewServerStartCmd(ctx context.Context, version string) *cobra.Command {
 			return RunServerStart(ctx, opts, version)
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&opts.config, "config", "c", "./router/conf.yaml", "Config file")
+	cmd.PersistentFlags().StringVarP(&opts.Listen, "listen", "l", ":8100", "listen hostPort")
+	cmd.PersistentFlags().StringVarP(&opts.ConsulURL, "consul", "c", "localhost:8500", "consul url")
+	cmd.PersistentFlags().StringVarP(&opts.Path, "path", "p", "./router", "base path")
 	return cmd
 }
 
 // RunServerStart run http server
 func RunServerStart(ctx context.Context, opts *ServerStartOptions, version string) error {
-	config, err := conf.Init(opts.config)
-	if err != nil {
-		return err
-	}
 	_ = logger.Init(logger.Settings{
 		Level: "trace",
 	})
@@ -45,22 +47,57 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	ac := conf.MakeAccessLog()
 	defer ac.Close()
 
-	app := iris.Default()
+	mappings, err := config.LoadMapping(path.Join(opts.Path, "mapping.json"))
+	if err != nil {
+		return err
+	}
+	regions, err := config.LoadRegions(path.Join(opts.Path, "regions.json"))
+	if err != nil {
+		return err
+	}
 
-	app.UseRouter(recover.New())
+	region, err := ipregion.NewIp2region(path.Join(opts.Path, "ip2region.db"))
+	if err != nil {
+		return err
+	}
+
+	ns, err := consul.NewNaming(opts.ConsulURL)
+	if err != nil {
+		return err
+	}
+
+	router := apis.RouterApi{
+		Naming:   ns,
+		IpRegion: region,
+		Config: config.Router{
+			Mapping: mappings,
+			Regions: regions,
+		},
+	}
+
+	app := iris.Default()
 	app.UseRouter(ac.Handler)
-	app.UseRouter(requestid.New())
+	// app.UseRouter(setAllowedResponses)
 
 	app.Get("/health", func(ctx iris.Context) {
 		_, _ = ctx.WriteString("ok")
 	})
+	routerAPI := app.Party("/api/lookup")
+	{
+		routerAPI.Get("/:token", router.Lookup)
+	}
 
 	// Start server
-	return app.Listen(config.Listen, iris.WithOptimizations)
+	return app.Listen(opts.Listen, iris.WithOptimizations)
 }
 
-func HashCode(key string) uint32 {
-	hash32 := crc32.NewIEEE()
-	hash32.Write([]byte(key))
-	return hash32.Sum32() % 1000
+func setAllowedResponses(ctx iris.Context) {
+	// Indicate that the Server can send JSON, XML, YAML and MessagePack for this request.
+	ctx.Negotiation().JSON().MsgPack()
+	// Add more, allowed by the server format of responses, mime types here...
+
+	// If client is missing an "Accept: " header then default it to JSON.
+	ctx.Negotiation().Accept.JSON()
+
+	ctx.Next()
 }

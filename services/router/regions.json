@@ -1,0 +1,15 @@
+[
+    {
+        "id": "EC",
+        "idcs": [
+            {
+                "id": "SH_ALI",
+                "weight": 60
+            },
+            {
+                "id": "HZ_ALI",
+                "weight": 40
+            }
+        ]
+    }
+]
