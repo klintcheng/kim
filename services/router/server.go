@@ -80,7 +80,6 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 
 	app := iris.Default()
 	app.UseRouter(ac.Handler)
-	// app.UseRouter(setAllowedResponses)
 
 	app.Get("/health", func(ctx iris.Context) {
 		_, _ = ctx.WriteString("ok")
@@ -92,15 +91,4 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 
 	// Start server
 	return app.Listen(opts.Listen, iris.WithOptimizations)
-}
-
-func setAllowedResponses(ctx iris.Context) {
-	// Indicate that the Server can send JSON, XML, YAML and MessagePack for this request.
-	ctx.Negotiation().JSON().MsgPack()
-	// Add more, allowed by the server format of responses, mime types here...
-
-	// If client is missing an "Accept: " header then default it to JSON.
-	ctx.Negotiation().Accept.JSON()
-
-	ctx.Next()
 }
