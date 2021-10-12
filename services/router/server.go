@@ -11,6 +11,7 @@ import (
 	"github.com/klintcheng/kim/services/router/config"
 	"github.com/klintcheng/kim/services/router/ipregion"
 	"github.com/klintcheng/kim/services/service/conf"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -51,10 +52,12 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	if err != nil {
 		return err
 	}
+	logrus.Infof("load mappings - %v", mappings)
 	regions, err := config.LoadRegions(path.Join(opts.Path, "regions.json"))
 	if err != nil {
 		return err
 	}
+	logrus.Infof("load regions - %v", regions)
 
 	region, err := ipregion.NewIp2region(path.Join(opts.Path, "ip2region.db"))
 	if err != nil {

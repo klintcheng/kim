@@ -14,11 +14,12 @@ import (
 // Config Config
 type Config struct {
 	ServiceID       string
-	ServiceName     string `default:"gateway"`
+	ServiceName     string `default:"wgateway"`
 	Listen          string `default:":8000"`
 	PublicAddress   string
 	PublicPort      int `default:"8000"`
 	Tags            []string
+	Meta            map[string]string
 	ConsulURL       string
 	MonitorPort     int `default:"8001"`
 	AppSecret       string

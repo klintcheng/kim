@@ -56,6 +56,7 @@ func (r *RouterApi) Lookup(c iris.Context) {
 		c.StopWithError(iris.StatusInternalServerError, err)
 		return
 	}
+
 	// step 6
 	hits := selectGateways(token, gateways, 3)
 	domains := make([]string, len(hits))
