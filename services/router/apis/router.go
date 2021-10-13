@@ -10,6 +10,7 @@ import (
 	"github.com/klintcheng/kim/services/router/config"
 	"github.com/klintcheng/kim/services/router/ipregion"
 	"github.com/klintcheng/kim/wire"
+	"github.com/sirupsen/logrus"
 )
 
 const DefaultLocation = "中国"
@@ -20,6 +21,10 @@ type RouterApi struct {
 	Config   config.Router
 }
 
+type LookUpResp struct {
+	Domains []string `json:"domains"`
+}
+
 func (r *RouterApi) Lookup(c iris.Context) {
 	ip := kim.RealIP(c.Request())
 	token := c.Params().Get("token")
@@ -27,12 +32,12 @@ func (r *RouterApi) Lookup(c iris.Context) {
 	// step 1
 	var location config.Country
 	ipinfo, err := r.IpRegion.Search(ip)
-	if err != nil {
+	if err != nil || ipinfo.Country == "0" {
 		location = DefaultLocation
 	} else {
 		location = config.Country(ipinfo.Country)
 	}
-
+	logrus.Info(location)
 	// step 2
 	regionId, ok := r.Config.Mapping[location]
 	if !ok {
@@ -64,7 +69,9 @@ func (r *RouterApi) Lookup(c iris.Context) {
 		domains[i] = h.GetMeta()["domain"]
 	}
 
-	_, _ = c.JSON(domains)
+	_, _ = c.JSON(LookUpResp{
+		Domains: domains,
+	})
 }
 
 func selectIdc(token string, region *config.Region) *config.IDC {

@@ -40,6 +40,12 @@ func Init(file string) (*Config, error) {
 	viper.AddConfigPath("/etc/conf")
 
 	var config Config
+
+	err := envconfig.Process("kim", &config)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := viper.ReadInConfig(); err != nil {
 		logger.Warn(err)
 	} else {
@@ -47,10 +53,7 @@ func Init(file string) (*Config, error) {
 			return nil, err
 		}
 	}
-	err := envconfig.Process("kim", &config)
-	if err != nil {
-		return nil, err
-	}
+
 	if config.ServiceID == "" {
 		localIP := kim.GetLocalIP()
 		config.ServiceID = fmt.Sprintf("gate_%s", strings.ReplaceAll(localIP, ".", ""))
