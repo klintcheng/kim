@@ -63,10 +63,13 @@ func LoadRegions(path string) (map[string]*Region, error) {
 	for _, region := range regions {
 		res[region.ID] = region
 		for i, idc := range region.Idcs {
+			// 1.通过权重生成slots
 			shard := make([]byte, idc.Weight)
+			// 2. 给当前slot设置值，指向索引i
 			for j := 0; j < idc.Weight; j++ {
 				shard[j] = byte(i)
 			}
+			// 2. 追加到Slots中
 			region.Slots = append(region.Slots, shard...)
 		}
 
