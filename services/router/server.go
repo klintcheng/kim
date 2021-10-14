@@ -42,7 +42,7 @@ func NewServerStartCmd(ctx context.Context, version string) *cobra.Command {
 // RunServerStart run http server
 func RunServerStart(ctx context.Context, opts *ServerStartOptions, version string) error {
 	_ = logger.Init(logger.Settings{
-		Level: "trace",
+		Level: "info",
 	})
 
 	ac := conf.MakeAccessLog()

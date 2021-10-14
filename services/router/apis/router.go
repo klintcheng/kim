@@ -37,7 +37,7 @@ func (r *RouterApi) Lookup(c iris.Context) {
 	} else {
 		location = config.Country(ipinfo.Country)
 	}
-	logrus.Info(location)
+
 	// step 2
 	regionId, ok := r.Config.Mapping[location]
 	if !ok {
@@ -68,6 +68,12 @@ func (r *RouterApi) Lookup(c iris.Context) {
 	for i, h := range hits {
 		domains[i] = h.GetMeta()["domain"]
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"country":  location,
+		"regionId": regionId,
+		"idc":      idc.ID,
+	}).Infof("lookup domain %v", domains)
 
 	_, _ = c.JSON(LookUpResp{
 		Domains: domains,
