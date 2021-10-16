@@ -58,6 +58,9 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		ServiceID: config.ServiceID,
 		AppSecret: config.AppSecret,
 	}
+	meta := make(map[string]string)
+	meta[consul.KeyHealthURL] = fmt.Sprintf("http://%s:%d/health", config.PublicAddress, config.MonitorPort)
+	meta["domain"] = config.Domain
 
 	var srv kim.Server
 	service := &naming.DefaultService{
@@ -67,9 +70,7 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		Port:     config.PublicPort,
 		Protocol: opts.protocol,
 		Tags:     config.Tags,
-		Meta: map[string]string{
-			consul.KeyHealthURL: fmt.Sprintf("http://%s:%d/health", config.PublicAddress, config.MonitorPort),
-		},
+		Meta:     meta,
 	}
 	srvOpts := []kim.ServerOption{
 		kim.WithConnectionGPool(config.ConnectionGPool), kim.WithMessageGPool(config.MessageGPool),

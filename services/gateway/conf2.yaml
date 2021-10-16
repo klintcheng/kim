@@ -1,0 +1,12 @@
+ServiceID: gate02
+ServiceName: wgateway
+Listen: ":8010"
+MonitorPort: 8011
+PublicPort: 8010
+Tags:
+  - IDC:HZ_ALI
+Domain: ws://kingimcloud.com
+ConsulURL: localhost:8500
+AppSecret: ""
+MessageGPool: 5000
+ConnectionGPool: 15000

@@ -18,6 +18,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.0.4 // indirect
+	github.com/lionsoul2014/ip2region v2.2.0-release+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/panjf2000/ants/v2 v2.4.6

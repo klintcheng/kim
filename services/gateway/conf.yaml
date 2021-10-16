@@ -4,7 +4,8 @@ Listen: ":8000"
 MonitorPort: 8001
 PublicPort: 8000
 Tags:
-  - gate
+  - IDC:SH_ALI
+Domain: ws://kingimcloud.com
 ConsulURL: localhost:8500
 AppSecret: ""
 MessageGPool: 5000

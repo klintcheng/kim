@@ -1,5 +1,18 @@
 version: '3.1'
 services:
+  router:
+    image: docker.io/dockerklint/kim_router:v1.1
+    container_name: router
+    restart: always
+    networks: 
+      - kimnet
+    ports:
+      - "8100:8100"
+    volumes:
+      - ~/data/kim/:/data/
+    environment:
+      KIM_CONSULURL: consul:8500
+      KIM_LOGLEVEL: INFO
   royal:
     image: docker.io/dockerklint/kim_royal:v1.4
     container_name: royal
@@ -32,6 +45,8 @@ services:
       KIM_PUBLICADDRESS: gateway
       KIM_CONSULURL: consul:8500
       KIM_LOGLEVEL: DEBUG
+      KIM_TAGS: IDC:SH_ALI
+      KIM_DOMAIN: ws://119.3.4.216:8000
   server:
     image: docker.io/dockerklint/kim_server:v1.4
     container_name: chat

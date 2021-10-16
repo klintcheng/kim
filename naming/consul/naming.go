@@ -110,7 +110,6 @@ func (n *Naming) Register(s kim.ServiceRegistration) error {
 		check.DeregisterCriticalServiceAfter = "20s"
 		reg.Check = check
 	}
-
 	err := n.cli.Agent().ServiceRegister(reg)
 	return err
 }

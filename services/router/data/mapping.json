@@ -1,0 +1,22 @@
+[
+    {
+        "region": "EC",
+        "locations": [
+            "中国"
+        ]
+    },
+    {
+        "region": "HK",
+        "locations": [
+            "香港特别行政区",
+            "日本",
+            "菲律宾"
+        ]
+    },
+    {
+        "region": "TW",
+        "locations": [
+            "台湾省"
+        ]
+    }
+]

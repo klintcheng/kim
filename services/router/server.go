@@ -2,19 +2,22 @@ package router
 
 import (
 	"context"
-	"hash/crc32"
+	"path"
 
 	"github.com/kataras/iris/v12"
-	"github.com/kataras/iris/v12/middleware/recover"
-	"github.com/kataras/iris/v12/middleware/requestid"
 	"github.com/klintcheng/kim/logger"
-	"github.com/klintcheng/kim/services/service/conf"
+	"github.com/klintcheng/kim/naming/consul"
+	"github.com/klintcheng/kim/services/router/apis"
+	"github.com/klintcheng/kim/services/router/conf"
+	"github.com/klintcheng/kim/services/router/ipregion"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 // ServerStartOptions ServerStartOptions
 type ServerStartOptions struct {
 	config string
+	data   string
 }
 
 // NewServerStartCmd creates a new http server command
@@ -28,7 +31,8 @@ func NewServerStartCmd(ctx context.Context, version string) *cobra.Command {
 			return RunServerStart(ctx, opts, version)
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&opts.config, "config", "c", "./router/conf.yaml", "Config file")
+	cmd.PersistentFlags().StringVarP(&opts.config, "config", "c", "conf.yaml", "Config file")
+	cmd.PersistentFlags().StringVarP(&opts.data, "data", "d", "./router/data", "data path")
 	return cmd
 }
 
@@ -39,28 +43,50 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		return err
 	}
 	_ = logger.Init(logger.Settings{
-		Level: "trace",
+		Level:    "info",
+		Filename: "./data/router.log",
 	})
 
-	ac := conf.MakeAccessLog()
-	defer ac.Close()
+	mappings, err := conf.LoadMapping(path.Join(opts.data, "mapping.json"))
+	if err != nil {
+		return err
+	}
+	logrus.Infof("load mappings - %v", mappings)
+	regions, err := conf.LoadRegions(path.Join(opts.data, "regions.json"))
+	if err != nil {
+		return err
+	}
+	logrus.Infof("load regions - %v", regions)
+
+	region, err := ipregion.NewIp2region(path.Join(opts.data, "ip2region.db"))
+	if err != nil {
+		return err
+	}
+
+	ns, err := consul.NewNaming(config.ConsulURL)
+	if err != nil {
+		return err
+	}
+
+	router := apis.RouterApi{
+		Naming:   ns,
+		IpRegion: region,
+		Config: conf.Router{
+			Mapping: mappings,
+			Regions: regions,
+		},
+	}
 
 	app := iris.Default()
-
-	app.UseRouter(recover.New())
-	app.UseRouter(ac.Handler)
-	app.UseRouter(requestid.New())
 
 	app.Get("/health", func(ctx iris.Context) {
 		_, _ = ctx.WriteString("ok")
 	})
+	routerAPI := app.Party("/api/lookup")
+	{
+		routerAPI.Get("/:token", router.Lookup)
+	}
 
 	// Start server
 	return app.Listen(config.Listen, iris.WithOptimizations)
-}
-
-func HashCode(key string) uint32 {
-	hash32 := crc32.NewIEEE()
-	hash32.Write([]byte(key))
-	return hash32.Sum32() % 1000
 }
