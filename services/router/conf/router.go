@@ -1,4 +1,4 @@
-package config
+package conf
 
 import (
 	"encoding/json"
@@ -72,7 +72,6 @@ func LoadRegions(path string) (map[string]*Region, error) {
 			// 2. 追加到Slots中
 			region.Slots = append(region.Slots, shard...)
 		}
-
 	}
 	return res, nil
 }

@@ -5,8 +5,7 @@ MonitorPort: 8011
 PublicPort: 8010
 Tags:
   - IDC:HZ_ALI
-Meta:
-  domain: ws://kingimcloud2.com
+Domain: ws://kingimcloud.com
 ConsulURL: localhost:8500
 AppSecret: ""
 MessageGPool: 5000

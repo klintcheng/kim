@@ -3,11 +3,12 @@ package apis
 import (
 	"fmt"
 	"hash/crc32"
+	"time"
 
 	"github.com/kataras/iris/v12"
 	"github.com/klintcheng/kim"
 	"github.com/klintcheng/kim/naming"
-	"github.com/klintcheng/kim/services/router/config"
+	"github.com/klintcheng/kim/services/router/conf"
 	"github.com/klintcheng/kim/services/router/ipregion"
 	"github.com/klintcheng/kim/wire"
 	"github.com/sirupsen/logrus"
@@ -18,11 +19,13 @@ const DefaultLocation = "中国"
 type RouterApi struct {
 	Naming   naming.Naming
 	IpRegion ipregion.IpRegion
-	Config   config.Router
+	Config   conf.Router
 }
 
 type LookUpResp struct {
-	Domains []string `json:"domains"`
+	UTC      int64    `json:"utc"`
+	Location string   `json:"location"`
+	Domains  []string `json:"domains"`
 }
 
 func (r *RouterApi) Lookup(c iris.Context) {
@@ -30,12 +33,12 @@ func (r *RouterApi) Lookup(c iris.Context) {
 	token := c.Params().Get("token")
 
 	// step 1
-	var location config.Country
+	var location conf.Country
 	ipinfo, err := r.IpRegion.Search(ip)
 	if err != nil || ipinfo.Country == "0" {
 		location = DefaultLocation
 	} else {
-		location = config.Country(ipinfo.Country)
+		location = conf.Country(ipinfo.Country)
 	}
 
 	// step 2
@@ -76,11 +79,13 @@ func (r *RouterApi) Lookup(c iris.Context) {
 	}).Infof("lookup domain %v", domains)
 
 	_, _ = c.JSON(LookUpResp{
-		Domains: domains,
+		UTC:      time.Now().Unix(),
+		Location: string(location),
+		Domains:  domains,
 	})
 }
 
-func selectIdc(token string, region *config.Region) *config.IDC {
+func selectIdc(token string, region *conf.Region) *conf.IDC {
 	slot := hashcode(token) % len(region.Slots)
 	i := region.Slots[slot]
 	return &region.Idcs[i]

@@ -23,12 +23,9 @@ func Test_Lookup(t *testing.T) {
 		resp, err := cli.R().SetResult(&res).Get(url)
 		assert.Equal(t, http.StatusOK, resp.StatusCode())
 		assert.Nil(t, err)
-		if len(res.Domains) == 1 {
-			if _, ok := domains[res.Domains[0]]; ok {
-				domains[res.Domains[0]]++
-			} else {
-				domains[res.Domains[0]] = 0
-			}
+		if len(res.Domains) > 0 {
+			domain := res.Domains[0]
+			domains[domain]++
 		}
 	}
 	for domain, hit := range domains {

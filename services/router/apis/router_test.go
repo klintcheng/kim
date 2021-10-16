@@ -5,13 +5,13 @@ import (
 
 	"github.com/klintcheng/kim"
 	"github.com/klintcheng/kim/naming"
-	"github.com/klintcheng/kim/services/router/config"
+	"github.com/klintcheng/kim/services/router/conf"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_selectIdc(t *testing.T) {
-	got := selectIdc("test1", &config.Region{
-		Idcs: []config.IDC{
+	got := selectIdc("test1", &conf.Region{
+		Idcs: []conf.IDC{
 			{ID: "SH_ALI"},
 			{ID: "HZ_ALI"},
 			{ID: "SH_TENCENT"},

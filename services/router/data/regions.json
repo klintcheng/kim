@@ -4,11 +4,11 @@
         "idcs": [
             {
                 "id": "SH_ALI",
-                "weight": 60
+                "weight": 100
             },
             {
                 "id": "HZ_ALI",
-                "weight": 40
+                "weight": 0
             }
         ]
     }

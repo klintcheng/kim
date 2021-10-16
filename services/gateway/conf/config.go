@@ -19,7 +19,7 @@ type Config struct {
 	PublicAddress   string
 	PublicPort      int `default:"8000"`
 	Tags            []string
-	Meta            map[string]string
+	Domain          string
 	ConsulURL       string
 	MonitorPort     int `default:"8001"`
 	AppSecret       string

@@ -5,8 +5,7 @@ MonitorPort: 8001
 PublicPort: 8000
 Tags:
   - IDC:SH_ALI
-Meta:
-  domain: ws://kingimcloud.com
+Domain: ws://kingimcloud.com
 ConsulURL: localhost:8500
 AppSecret: ""
 MessageGPool: 5000
