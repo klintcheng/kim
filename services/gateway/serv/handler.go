@@ -14,6 +14,10 @@ import (
 	"github.com/klintcheng/kim/wire/token"
 )
 
+const (
+	MetaKeyApp = "_app"
+)
+
 var log = logger.WithFields(logger.Fields{
 	"service": "gateway",
 	"pkg":     "serv",
@@ -26,33 +30,33 @@ type Handler struct {
 }
 
 // Accept this connection
-func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
+func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, kim.Meta, error) {
 	// 1. 读取登陆包
 	_ = conn.SetReadDeadline(time.Now().Add(timeout))
 	frame, err := conn.ReadFrame()
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	buf := bytes.NewBuffer(frame.GetPayload())
 	req, err := pkt.MustReadLogicPkt(buf)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return "", nil, err
 	}
 	// 2. 必须是登录包
 	if req.Command != wire.CommandLoginSignIn {
 		resp := pkt.NewFrom(&req.Header)
 		resp.Status = pkt.Status_InvalidCommand
 		_ = conn.WriteFrame(kim.OpBinary, pkt.Marshal(resp))
-		return "", fmt.Errorf("must be a SignIn command")
+		return "", nil, fmt.Errorf("must be a SignIn command")
 	}
 
 	// 3. 反序列化Body
 	var login pkt.LoginReq
 	err = req.ReadBody(&login)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 	secret := h.AppSecret
 	if secret == "" {
@@ -65,7 +69,7 @@ func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
 		resp := pkt.NewFrom(&req.Header)
 		resp.Status = pkt.Status_Unauthorized
 		_ = conn.WriteFrame(kim.OpBinary, pkt.Marshal(resp))
-		return "", err
+		return "", nil, err
 	}
 	// 6. 生成一个全局唯一的ChannelID
 	id := generateChannelID(h.ServiceID, tk.Account)
@@ -82,9 +86,11 @@ func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
 	// 7. 把login.转发给Login服务
 	err = container.Forward(wire.SNLogin, req)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
-	return id, nil
+	return id, kim.Meta{
+		MetaKeyApp: tk.App,
+	}, nil
 }
 
 // Receive default listener
@@ -103,6 +109,10 @@ func (h *Handler) Receive(ag kim.Agent, payload []byte) {
 	}
 	if logicPkt, ok := packet.(*pkt.LogicPkt); ok {
 		logicPkt.ChannelId = ag.ID()
+		// 把meta注入到header中
+		if ag.GetMeta() != nil {
+			logicPkt.AddStringMeta(MetaKeyApp, ag.GetMeta()[MetaKeyApp])
+		}
 
 		err = container.Forward(logicPkt.ServiceName(), logicPkt)
 		if err != nil {

@@ -1,0 +1,25 @@
+{
+    "routeBy": "app",
+    "rules": {
+        "in":[
+            {
+                "group": "group01",
+                "flow": 30
+            },
+            {
+                "group": "group02",
+                "flow": 30
+            },
+            {
+                "group": "group02",
+                "flow": 40
+            }
+        ],
+        "whitelist": [
+            {
+                "key": "app_kim",
+                "value": "group04"
+            }
+        ]
+    }
+}

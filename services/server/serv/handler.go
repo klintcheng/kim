@@ -34,18 +34,18 @@ func NewServHandler(r *kim.Router, cache kim.SessionStorage) *ServHandler {
 }
 
 // Accept this connection
-func (h *ServHandler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
+func (h *ServHandler) Accept(conn kim.Conn, timeout time.Duration) (string, kim.Meta, error) {
 	_ = conn.SetReadDeadline(time.Now().Add(timeout))
 	frame, err := conn.ReadFrame()
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	var req pkt.InnerHandshakeReq
 	_ = proto.Unmarshal(frame.GetPayload(), &req)
 	log.Info("Accept -- ", req.ServiceId)
 
-	return req.ServiceId, nil
+	return req.ServiceId, nil, nil
 }
 
 // Receive default listener

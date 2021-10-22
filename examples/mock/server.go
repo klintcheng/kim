@@ -49,20 +49,20 @@ type ServerHandler struct {
 }
 
 // Accept this connection
-func (h *ServerHandler) Accept(conn kim.Conn, timeout time.Duration) (string, error) {
+func (h *ServerHandler) Accept(conn kim.Conn, timeout time.Duration) (string, kim.Meta, error) {
 	// 1. 读取：客户端发送的鉴权数据包
 	frame, err := conn.ReadFrame()
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 	// 2. 解析：数据包内容就是userId
 	userID := string(frame.GetPayload())
 	// 3. 鉴权：这里只是为了示例做一个fake验证，非空
 	if userID == "" {
-		return "", errors.New("user id is invalid")
+		return "", nil, errors.New("user id is invalid")
 	}
 	logger.Infof("logined %s", userID)
-	return userID, nil
+	return userID, nil, nil
 }
 
 // Receive default listener

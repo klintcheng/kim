@@ -142,7 +142,7 @@ func (s *DefaultServer) connHandler(rawconn net.Conn, gpool *ants.Pool) {
 		rawconn.Close()
 		return
 	}
-	id, err := s.Accept(conn, s.options.Loginwait)
+	id, meta, err := s.Accept(conn, s.options.Loginwait)
 	if err != nil {
 		_ = conn.WriteFrame(OpClose, []byte(err.Error()))
 		conn.Close()
@@ -154,8 +154,10 @@ func (s *DefaultServer) connHandler(rawconn net.Conn, gpool *ants.Pool) {
 		conn.Close()
 		return
 	}
-
-	channel := NewChannel(id, conn, gpool)
+	if meta == nil {
+		meta = Meta{}
+	}
+	channel := NewChannel(id, meta, conn, gpool)
 	channel.SetReadWait(s.options.Readwait)
 	channel.SetWriteWait(s.options.Writewait)
 
@@ -240,6 +242,6 @@ type defaultAcceptor struct {
 }
 
 // Accept defaultAcceptor
-func (a *defaultAcceptor) Accept(conn Conn, timeout time.Duration) (string, error) {
-	return ksuid.New().String(), nil
+func (a *defaultAcceptor) Accept(conn Conn, timeout time.Duration) (string, Meta, error) {
+	return ksuid.New().String(), Meta{}, nil
 }
