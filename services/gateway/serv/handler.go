@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	MetaKeyApp = "_app"
+	MetaKeyApp     = "app"
+	MetaKeyAccount = "account"
 )
 
 var log = logger.WithFields(logger.Fields{
@@ -83,13 +84,17 @@ func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, kim.Meta
 		App:       tk.App,
 		RemoteIP:  getIP(conn.RemoteAddr().String()),
 	})
+	req.AddStringMeta(MetaKeyApp, tk.App)
+	req.AddStringMeta(MetaKeyAccount, tk.Account)
+
 	// 7. 把login.转发给Login服务
 	err = container.Forward(wire.SNLogin, req)
 	if err != nil {
 		return "", nil, err
 	}
 	return id, kim.Meta{
-		MetaKeyApp: tk.App,
+		MetaKeyApp:     tk.App,
+		MetaKeyAccount: tk.Account,
 	}, nil
 }
 
@@ -112,6 +117,7 @@ func (h *Handler) Receive(ag kim.Agent, payload []byte) {
 		// 把meta注入到header中
 		if ag.GetMeta() != nil {
 			logicPkt.AddStringMeta(MetaKeyApp, ag.GetMeta()[MetaKeyApp])
+			logicPkt.AddStringMeta(MetaKeyAccount, ag.GetMeta()[MetaKeyAccount])
 		}
 
 		err = container.Forward(logicPkt.ServiceName(), logicPkt)

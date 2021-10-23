@@ -1,0 +1,23 @@
+{
+    "routeBy": "app",
+    "zones": [
+        {
+            "id": "zone_ali_01",
+            "weight": 20
+        },
+        {
+            "id": "zone_ali_02",
+            "weight": 35
+        },
+        {
+            "id": "zone_ali_03",
+            "weight": 45
+        }
+    ],
+    "whitelist": [
+        {
+            "key": "kim",
+            "value": "zone_ali_01"
+        }
+    ]
+}

@@ -13,6 +13,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.4.3
 	github.com/hashicorp/consul/api v1.8.1
+	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/kataras/iris/v12 v12.2.0-alpha2.0.20210705170737-afb15b860124
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/text v0.2.0 // indirect
@@ -29,6 +30,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
+	github.com/yudai/pp v2.0.1+incompatible // indirect
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
 	golang.org/x/sys v0.0.0-20211020174200-9d6173849985 // indirect
