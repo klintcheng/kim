@@ -3,21 +3,21 @@
     "zones": [
         {
             "id": "zone_ali_01",
-            "weight": 20
+            "weight": 80
         },
         {
             "id": "zone_ali_02",
-            "weight": 35
+            "weight": 10
         },
         {
             "id": "zone_ali_03",
-            "weight": 45
+            "weight": 10
         }
     ],
     "whitelist": [
         {
             "key": "kim",
-            "value": "zone_ali_01"
+            "value": "zone_ali_03"
         }
     ]
 }

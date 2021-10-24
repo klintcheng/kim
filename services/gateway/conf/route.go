@@ -3,6 +3,8 @@ package conf
 import (
 	"encoding/json"
 	"io/ioutil"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Zone struct {
@@ -12,15 +14,15 @@ type Zone struct {
 
 type Route struct {
 	RouteBy   string
-	Zones     []*Zone
+	Zones     []Zone
 	Whitelist map[string]string
 	Slots     []int
 }
 
 func ReadRoute(path string) (*Route, error) {
 	var conf struct {
-		RouteBy   string  `json:"route_by,omitempty"`
-		Zones     []*Zone `json:"zones,omitempty"`
+		RouteBy   string `json:"route_by,omitempty"`
+		Zones     []Zone `json:"zones,omitempty"`
 		Whitelist []struct {
 			Key   string `json:"key,omitempty"`
 			Value string `json:"value,omitempty"`
@@ -57,5 +59,6 @@ func ReadRoute(path string) (*Route, error) {
 	for _, wl := range conf.Whitelist {
 		rt.Whitelist[wl.Key] = wl.Value
 	}
+	logrus.Infoln(rt)
 	return &rt, nil
 }
