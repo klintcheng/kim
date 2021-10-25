@@ -27,6 +27,7 @@ func NewRouteSelector(configPath string) (*RouteSelector, error) {
 
 // Lookup a server
 func (s *RouteSelector) Lookup(header *pkt.Header, srvs []kim.Service) string {
+	// 1. 从header中读取Meta信息
 	app, _ := pkt.FindMeta(header.Meta, MetaKeyApp)
 	account, _ := pkt.FindMeta(header.Meta, MetaKeyAccount)
 	if app == nil || account == nil {
@@ -38,9 +39,9 @@ func (s *RouteSelector) Lookup(header *pkt.Header, srvs []kim.Service) string {
 		"account": account,
 	})
 
-	// 1. 判断是否命中白名单
+	// 2. 判断是否命中白名单
 	zone, ok := s.route.Whitelist[app.(string)]
-	if !ok {
+	if !ok { // 未命中情况
 		var key string
 		switch s.route.RouteBy {
 		case MetaKeyApp:
@@ -50,21 +51,21 @@ func (s *RouteSelector) Lookup(header *pkt.Header, srvs []kim.Service) string {
 		default:
 			key = account.(string)
 		}
-		// 2. 未命中，通过权重计算出zone
+		// 3. 通过权重计算出zone
 		slot := hashcode(key) % len(s.route.Slots)
 		i := s.route.Slots[slot]
 		zone = s.route.Zones[i].ID
 	} else {
 		log.Infoln("hit a zone in whitelist", zone)
 	}
-	// 3. 过滤出当前zone的servers
+	// 4. 过滤出当前zone的servers
 	zoneSrvs := filterSrvs(srvs, zone)
 	if len(zoneSrvs) == 0 {
 		log.Warnf("select a random service from all due to no service found in zone %s", zone)
 		ri := rand.Intn(len(srvs))
 		return srvs[ri].ServiceID()
 	}
-	// 4. 选中一个服务
+	// 5. 从zoneSrvs中选中一个服务
 	srv := selectSrvs(zoneSrvs, account.(string))
 	return srv.ServiceID()
 }
