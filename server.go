@@ -67,7 +67,7 @@ type Server interface {
 type Acceptor interface {
 	// Accept 返回一个握手完成的Channel对象或者一个error。
 	// 业务层需要处理不同协议和网络环境下的连接握手协议
-	Accept(Conn, time.Duration) (string, error)
+	Accept(Conn, time.Duration) (string, Meta, error)
 }
 
 // MessageListener 监听消息
@@ -82,10 +82,13 @@ type StateListener interface {
 	Disconnect(string) error
 }
 
+type Meta map[string]string
+
 // Agent is interface of client side
 type Agent interface {
 	ID() string
 	Push([]byte) error
+	GetMeta() Meta
 }
 
 // Conn Connection

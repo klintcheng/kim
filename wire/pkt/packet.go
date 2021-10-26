@@ -155,7 +155,11 @@ func (p *LogicPkt) AddStringMeta(key, value string) {
 
 // GetMeta extra value
 func (p *LogicPkt) GetMeta(key string) (interface{}, bool) {
-	for _, m := range p.Meta {
+	return FindMeta(p.Meta, key)
+}
+
+func FindMeta(meta []*Meta, key string) (interface{}, bool) {
+	for _, m := range meta {
 		if m.Key == key {
 			switch m.Type {
 			case MetaType_int:

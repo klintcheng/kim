@@ -23,7 +23,7 @@ type Config struct {
 	ConsulURL       string
 	MonitorPort     int `default:"8001"`
 	AppSecret       string
-	LogLevel        string `default:"INFO"`
+	LogLevel        string `default:"DEBUG"`
 	MessageGPool    int    `default:"10000"`
 	ConnectionGPool int    `default:"15000"`
 }

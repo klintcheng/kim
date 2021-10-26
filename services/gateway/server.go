@@ -25,6 +25,7 @@ import (
 type ServerStartOptions struct {
 	config   string
 	protocol string
+	route    string
 }
 
 // NewServerStartCmd creates a new http server command
@@ -38,7 +39,8 @@ func NewServerStartCmd(ctx context.Context, version string) *cobra.Command {
 			return RunServerStart(ctx, opts, version)
 		},
 	}
-	cmd.PersistentFlags().StringVarP(&opts.config, "config", "c", "conf.yaml", "Config file")
+	cmd.PersistentFlags().StringVarP(&opts.config, "config", "c", "./gateway/conf.yaml", "Config file")
+	cmd.PersistentFlags().StringVarP(&opts.route, "route", "r", "./gateway/route.json", "route file")
 	cmd.PersistentFlags().StringVarP(&opts.protocol, "protocol", "p", "ws", "protocol of ws or tcp")
 	return cmd
 }
@@ -96,6 +98,11 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	container.SetServiceNaming(ns)
 	// set a dialer
 	container.SetDialer(serv.NewDialer(config.ServiceID))
-
+	// use routeSelector
+	selector, err := serv.NewRouteSelector(opts.route)
+	if err != nil {
+		return err
+	}
+	container.SetSelector(selector)
 	return container.Start()
 }

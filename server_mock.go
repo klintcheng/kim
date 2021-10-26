@@ -530,12 +530,13 @@ func (m *MockAcceptor) EXPECT() *MockAcceptorMockRecorder {
 }
 
 // Accept mocks base method.
-func (m *MockAcceptor) Accept(arg0 Conn, arg1 time.Duration) (string, error) {
+func (m *MockAcceptor) Accept(arg0 Conn, arg1 time.Duration) (string, Meta, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Accept", arg0, arg1)
 	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(Meta)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // Accept indicates an expected call of Accept.
@@ -637,6 +638,20 @@ func NewMockAgent(ctrl *gomock.Controller) *MockAgent {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAgent) EXPECT() *MockAgentMockRecorder {
 	return m.recorder
+}
+
+// GetMeta mocks base method.
+func (m *MockAgent) GetMeta() Meta {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMeta")
+	ret0, _ := ret[0].(Meta)
+	return ret0
+}
+
+// GetMeta indicates an expected call of GetMeta.
+func (mr *MockAgentMockRecorder) GetMeta() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeta", reflect.TypeOf((*MockAgent)(nil).GetMeta))
 }
 
 // ID mocks base method.
@@ -896,6 +911,20 @@ func (m *MockChannel) Flush() error {
 func (mr *MockChannelMockRecorder) Flush() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Flush", reflect.TypeOf((*MockChannel)(nil).Flush))
+}
+
+// GetMeta mocks base method.
+func (m *MockChannel) GetMeta() Meta {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMeta")
+	ret0, _ := ret[0].(Meta)
+	return ret0
+}
+
+// GetMeta indicates an expected call of GetMeta.
+func (mr *MockChannelMockRecorder) GetMeta() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMeta", reflect.TypeOf((*MockChannel)(nil).GetMeta))
 }
 
 // ID mocks base method.

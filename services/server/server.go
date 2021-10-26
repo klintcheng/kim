@@ -100,6 +100,10 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 	cache := storage.NewRedisStorage(rdb)
 	servhandler := serv.NewServHandler(r, cache)
 
+	meta := make(map[string]string)
+	meta[consul.KeyHealthURL] = fmt.Sprintf("http://%s:%d/health", config.PublicAddress, config.MonitorPort)
+	meta["zone"] = config.Zone
+
 	service := &naming.DefaultService{
 		Id:       config.ServiceID,
 		Name:     opts.serviceName,
@@ -107,9 +111,7 @@ func RunServerStart(ctx context.Context, opts *ServerStartOptions, version strin
 		Port:     config.PublicPort,
 		Protocol: string(wire.ProtocolTCP),
 		Tags:     config.Tags,
-		Meta: map[string]string{
-			consul.KeyHealthURL: fmt.Sprintf("http://%s:%d/health", config.PublicAddress, config.MonitorPort),
-		},
+		Meta:     meta,
 	}
 	srvOpts := []kim.ServerOption{
 		kim.WithConnectionGPool(config.ConnectionGPool), kim.WithMessageGPool(config.MessageGPool),

@@ -26,10 +26,11 @@ type Config struct {
 	PublicAddress   string
 	PublicPort      int `default:"8005"`
 	Tags            []string
+	Zone            string `default:"zone_ali_03"`
 	ConsulURL       string
 	RedisAddrs      string
 	RoyalURL        string
-	LogLevel        string `default:"INFO"`
+	LogLevel        string `default:"DEBUG"`
 	MessageGPool    int    `default:"5000"`
 	ConnectionGPool int    `default:"500"`
 }
