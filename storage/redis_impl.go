@@ -62,8 +62,8 @@ func (r *RedisStorage) Delete(account string, channelId string) error {
 }
 
 // GetByID get session by sessionID
-func (r *RedisStorage) Get(ChannelId string) (*pkt.Session, error) {
-	snKey := KeySession(ChannelId)
+func (r *RedisStorage) Get(channelId string) (*pkt.Session, error) {
+	snKey := KeySession(channelId)
 	bts, err := r.cli.Get(snKey).Bytes()
 	if err != nil {
 		if err == redis.Nil {

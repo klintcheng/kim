@@ -23,7 +23,7 @@ func (h *LoginHandler) DoSysLogin(ctx kim.Context) {
 	}
 
 	log.Infof("do login of %v ", session.String())
-	// 2. 检查当前账号是否已经登陆在其它地方
+	// 2. 检查当前账号是否已经登录在其它地方
 	old, err := ctx.GetLocation(session.Account, "")
 	if err != nil && err != kim.ErrSessionNil {
 		_ = ctx.RespWithError(pkt.Status_SystemException, err)
@@ -43,7 +43,7 @@ func (h *LoginHandler) DoSysLogin(ctx kim.Context) {
 		_ = ctx.RespWithError(pkt.Status_SystemException, err)
 		return
 	}
-	// 5. 返回一个登陆成功的消息
+	// 5. 返回一个登录成功的消息
 	var resp = &pkt.LoginResp{
 		ChannelId: session.ChannelId,
 		Account:   session.Account,

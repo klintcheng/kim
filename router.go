@@ -33,10 +33,10 @@ func (r *Router) Use(handlers ...HandlerFunc) {
 	r.middlewares = append(r.middlewares, handlers...)
 }
 
-// Handle regist a commond handler
-func (r *Router) Handle(commond string, handlers ...HandlerFunc) {
-	r.handlers.Add(commond, r.middlewares...)
-	r.handlers.Add(commond, handlers...)
+// Handle register a command handler
+func (r *Router) Handle(command string, handlers ...HandlerFunc) {
+	r.handlers.Add(command, r.middlewares...)
+	r.handlers.Add(command, handlers...)
 }
 
 // Serve a packet from client

@@ -22,13 +22,13 @@ var log = logger.WithFields(logger.Fields{
 type ServHandler struct {
 	r          *kim.Router
 	cache      kim.SessionStorage
-	dispatcher *ServerDispather
+	dispatcher *ServerDispatcher
 }
 
 func NewServHandler(r *kim.Router, cache kim.SessionStorage) *ServHandler {
 	return &ServHandler{
 		r:          r,
-		dispatcher: &ServerDispather{},
+		dispatcher: &ServerDispatcher{},
 		cache:      cache,
 	}
 }
@@ -92,10 +92,10 @@ func RespErr(ag kim.Agent, p *pkt.LogicPkt, status pkt.Status) error {
 	return container.Push(ag.ID(), p)
 }
 
-type ServerDispather struct {
+type ServerDispatcher struct {
 }
 
-func (d *ServerDispather) Push(gateway string, channels []string, p *pkt.LogicPkt) error {
+func (d *ServerDispatcher) Push(gateway string, channels []string, p *pkt.LogicPkt) error {
 	p.AddStringMeta(wire.MetaDestChannels, strings.Join(channels, ","))
 	return container.Push(gateway, p)
 }
