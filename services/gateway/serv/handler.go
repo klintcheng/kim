@@ -32,7 +32,7 @@ type Handler struct {
 
 // Accept this connection
 func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, kim.Meta, error) {
-	// 1. 读取登陆包
+	// 1. 读取登录包
 	_ = conn.SetReadDeadline(time.Now().Add(timeout))
 	frame, err := conn.ReadFrame()
 	if err != nil {

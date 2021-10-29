@@ -57,7 +57,7 @@ func (d *ClientDialer) DialAndHandshake(ctx kim.DialerContext) (net.Conn, error)
 	if err != nil {
 		return nil, err
 	}
-	// 4. 判断是否登陆成功
+	// 4. 判断是否登录成功
 	if ack.Status != pkt.Status_Success {
 		return nil, fmt.Errorf("login failed: %v", &ack.Header)
 	}
