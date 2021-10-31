@@ -72,7 +72,7 @@ func NewLoginCmd(opts *Options) *cobra.Command {
 			return nil
 		},
 	}
-	cmd.PersistentFlags().DurationVarP(&options.keep, "keep", "k", time.Second*5, "the duration of keeping the client connection")
+	cmd.PersistentFlags().DurationVarP(&options.keep, "keep", "k", time.Millisecond*10, "the duration of keeping the client connection")
 	return cmd
 }
 

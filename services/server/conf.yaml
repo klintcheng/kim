@@ -4,6 +4,7 @@ MonitorPort: 8006
 PublicPort: 8005
 Tags:
   - server
+Zone: zone_ali_03
 ConsulURL: localhost:8500
 RedisAddrs: localhost:6379
 RoyalURL: http://localhost:8080
