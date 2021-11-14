@@ -46,6 +46,8 @@ func login(wsurl, appSecret string, threads int, count int, keep time.Duration) 
 	r.Finalize(time.Since(t1))
 
 	logger.Infof("keep login for %v", keep)
+	time.Sleep(keep)
+
 	for _, cli := range clis {
 		cli.Close()
 	}

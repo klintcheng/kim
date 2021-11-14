@@ -23,7 +23,7 @@ func NewBenchmarkCmd(ctx context.Context) *cobra.Command {
 		Short: "kim benchmark tools",
 	}
 	var opts = &Options{}
-	cmd.PersistentFlags().StringVarP(&opts.Addr, "address", "a", "ws://124.71.204.19:8000", "server address")
+	cmd.PersistentFlags().StringVarP(&opts.Addr, "address", "a", "ws://localhost:8000", "server address")
 	cmd.PersistentFlags().StringVarP(&opts.AppSecret, "appSecret", "s", token.DefaultSecret, "app secret")
 	cmd.PersistentFlags().IntVarP(&opts.Count, "count", "c", 100, "request count")
 	cmd.PersistentFlags().IntVarP(&opts.Threads, "thread", "t", 10, "thread count")
@@ -72,7 +72,7 @@ func NewLoginCmd(opts *Options) *cobra.Command {
 			return nil
 		},
 	}
-	cmd.PersistentFlags().DurationVarP(&options.keep, "keep", "k", time.Second*5, "the duration of keeping the client connection")
+	cmd.PersistentFlags().DurationVarP(&options.keep, "keep", "k", time.Millisecond*10, "the duration of keeping the client connection")
 	return cmd
 }
 

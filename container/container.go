@@ -20,6 +20,7 @@ import (
 	"github.com/klintcheng/kim/tcp"
 	"github.com/klintcheng/kim/wire"
 	"github.com/klintcheng/kim/wire/pkt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
@@ -94,6 +95,8 @@ func EnableMonitor(listen string) {
 			http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 				_, _ = w.Write([]byte("ok"))
 			})
+			// add prometheus metrics
+			http.Handle("/metrics", promhttp.Handler())
 			_ = http.ListenAndServe(listen, nil)
 		}()
 	})
@@ -103,6 +106,7 @@ func EnableMonitor(listen string) {
 func SetSelector(selector Selector) {
 	c.selector = selector
 }
+
 // SetServiceNaming
 func SetServiceNaming(nm naming.Naming) {
 	c.Naming = nm
@@ -364,6 +368,7 @@ func pushMessage(packet *pkt.LogicPkt) error {
 	log.Debugf("Push to %v %v", channelIds, packet)
 
 	for _, channel := range channelIds {
+		messageOutFlowBytes.WithLabelValues(packet.Command).Add(float64(len(payload)))
 		err := c.Srv.Push(channel, payload)
 		if err != nil {
 			log.Debug(err)

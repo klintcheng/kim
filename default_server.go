@@ -160,8 +160,11 @@ func (s *DefaultServer) connHandler(rawconn net.Conn, gpool *ants.Pool) {
 	channel := NewChannel(id, meta, conn, gpool)
 	channel.SetReadWait(s.options.Readwait)
 	channel.SetWriteWait(s.options.Writewait)
-
 	s.Add(channel)
+
+	gaugeWithLabel := channelTotalGauge.WithLabelValues(s.ServiceID(), s.ServiceName())
+	gaugeWithLabel.Inc()
+	defer gaugeWithLabel.Dec()
 
 	logger.Infof("accept channel - ID: %s RemoteAddr: %s", channel.ID(), channel.RemoteAddr())
 	err = channel.Readloop(s.MessageListener)
