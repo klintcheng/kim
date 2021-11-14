@@ -366,9 +366,9 @@ func pushMessage(packet *pkt.LogicPkt) error {
 	packet.DelMeta(wire.MetaDestChannels)
 	payload := pkt.Marshal(packet)
 	log.Debugf("Push to %v %v", channelIds, packet)
-	messageOutFlowBytes.WithLabelValues(packet.Command).Add(float64(len(payload)))
 
 	for _, channel := range channelIds {
+		messageOutFlowBytes.WithLabelValues(packet.Command).Add(float64(len(payload)))
 		err := c.Srv.Push(channel, payload)
 		if err != nil {
 			log.Debug(err)
