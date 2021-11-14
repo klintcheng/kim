@@ -114,6 +114,10 @@ func (h *Handler) Receive(ag kim.Agent, payload []byte) {
 	}
 	if logicPkt, ok := packet.(*pkt.LogicPkt); ok {
 		logicPkt.ChannelId = ag.ID()
+
+		messageInTotal.WithLabelValues(h.ServiceID, wire.SNTGateway, logicPkt.Command).Inc()
+		messageInFlowBytes.WithLabelValues(h.ServiceID, wire.SNTGateway, logicPkt.Command).Add(float64(len(payload)))
+
 		// 把meta注入到header中
 		if ag.GetMeta() != nil {
 			logicPkt.AddStringMeta(MetaKeyApp, ag.GetMeta()[MetaKeyApp])
