@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"gorm.io/driver/mysql"
-	"gorm.io/driver/sqlite"
+	// "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
@@ -29,9 +29,10 @@ func InitDb(driver string, dsn string) (*gorm.DB, error) {
 	var dialector gorm.Dialector
 	if driver == "mysql" {
 		dialector = mysql.Open(dsn)
-	} else if driver == "sqlite" {
-		dialector = sqlite.Open(dsn)
 	}
+	// else if driver == "sqlite" {
+	// dialector = sqlite.Open(dsn)
+	// }
 
 	db, err := gorm.Open(dialector, &gorm.Config{
 		Logger: defaultLogger,
