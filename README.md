@@ -22,7 +22,7 @@ Kim依赖mysql、Consul和Redis。因此，在本地测试时需要准备相应�
 
 > docker-compose -f "docker-compose.yml" up -d --build
 
-方式一： docker分别启动
+方式二： docker分别启动
 
 ```cmd
 docker run -itd --name kim_mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 mysql
@@ -52,9 +52,11 @@ docker run -itd --name kim_redis -p 6379:6379 redis
 
 首先进入services中，分别启动三个服务：
 
-> go run main.go gateway
-> go run main.go server
-> go run main.go royal
+```
+go run main.go gateway
+go run main.go server
+go run main.go royal
+```
 
 访问Consul，可以查看服务启动状态：
 
