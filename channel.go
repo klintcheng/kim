@@ -48,6 +48,7 @@ func NewChannel(id string, meta Meta, conn Conn, gpool *ants.Pool) Channel {
 
 func (ch *ChannelImpl) writeloop() error {
 	for payload := range ch.writechan {
+		_ = ch.Conn.SetWriteDeadline(time.Now().Add(ch.writeWait))
 		err := ch.WriteFrame(OpBinary, payload)
 		if err != nil {
 			return err
@@ -60,7 +61,6 @@ func (ch *ChannelImpl) writeloop() error {
 				return err
 			}
 		}
-		_ = ch.Conn.SetWriteDeadline(time.Now().Add(ch.writeWait))
 		err = ch.Flush()
 		if err != nil {
 			return err
