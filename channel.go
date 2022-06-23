@@ -129,6 +129,7 @@ func (ch *ChannelImpl) Readloop(lst MessageListener) error {
 			}).Trace("recv a ping; resp with a pong")
 
 			_ = ch.WriteFrame(OpPong, nil)
+			_ = ch.Flush()
 			continue
 		}
 		payload := frame.GetPayload()
