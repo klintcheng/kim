@@ -67,11 +67,12 @@ func (h *ServerHandler) Accept(conn kim.Conn, timeout time.Duration) (string, ki
 
 // Receive default listener
 func (h *ServerHandler) Receive(ag kim.Agent, payload []byte) {
+	logger.Infof("srv received %s", string(payload))
 	_ = ag.Push([]byte("ok"))
 }
 
 // Disconnect default listener
 func (h *ServerHandler) Disconnect(id string) error {
-	logger.Warnf("disconnect %s", id)
+	logger.Infof("disconnect %s", id)
 	return nil
 }

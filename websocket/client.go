@@ -127,7 +127,7 @@ func (c *Client) Close() {
 	})
 }
 
-// Read a frame ,this function is not safey for concurrent
+// Read a frame ,this function is not safely for concurrent
 func (c *Client) Read() (kim.Frame, error) {
 	if c.conn == nil {
 		return nil, errors.New("connection is nil")
