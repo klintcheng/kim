@@ -35,6 +35,7 @@ func (c *ClientDemo) Start(userID, protocol, addr string) {
 	err := cli.Connect(addr)
 	if err != nil {
 		logger.Error(err)
+		return
 	}
 	count := 10
 	go func() {
@@ -61,7 +62,7 @@ func (c *ClientDemo) Start(userID, protocol, addr string) {
 			continue
 		}
 		recv++
-		logger.Warnf("%s receive message [%s]", cli.ServiceID(), frame.GetPayload())
+		logger.Infof("%s receive message [%s]", cli.ServiceID(), frame.GetPayload())
 		if recv == count { // 接收完消息
 			break
 		}
@@ -76,8 +77,12 @@ type WebsocketDialer struct {
 
 // DialAndHandshake DialAndHandshake
 func (d *WebsocketDialer) DialAndHandshake(ctx kim.DialerContext) (net.Conn, error) {
+	logger.Info("start ws dial: ", ctx.Address)
 	// 1 调用ws.Dial拨号
-	conn, _, _, err := ws.Dial(context.TODO(), ctx.Address)
+	ctxWithTimeout, cancel := context.WithTimeout(context.TODO(), ctx.Timeout)
+	defer cancel()
+
+	conn, _, _, err := ws.Dial(ctxWithTimeout, ctx.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +101,7 @@ type TCPDialer struct {
 
 // DialAndHandshake DialAndHandshake
 func (d *TCPDialer) DialAndHandshake(ctx kim.DialerContext) (net.Conn, error) {
-	logger.Info("start dial: ", ctx.Address)
+	logger.Info("start tcp dial: ", ctx.Address)
 	// 1 调用net.Dial拨号
 	conn, err := net.DialTimeout("tcp", ctx.Address, ctx.Timeout)
 	if err != nil {
