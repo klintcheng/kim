@@ -47,8 +47,15 @@ func NewChannel(id string, meta Meta, conn Conn, gpool *ants.Pool) Channel {
 }
 
 func (ch *ChannelImpl) writeloop() error {
+	log := logger.WithFields(logger.Fields{
+		"module": "ChannelImpl",
+		"func":   "writeloop",
+		"id":     ch.id,
+	})
+	defer func() {
+		log.Debugf("channel %s writeloop exited", ch.id)
+	}()
 	for payload := range ch.writechan {
-		_ = ch.Conn.SetWriteDeadline(time.Now().Add(ch.writeWait))
 		err := ch.WriteFrame(OpBinary, payload)
 		if err != nil {
 			return err
@@ -66,7 +73,6 @@ func (ch *ChannelImpl) writeloop() error {
 			return err
 		}
 	}
-	logger.Debugf("channel %s writeloop exited", ch.id)
 	return nil
 }
 
@@ -111,22 +117,24 @@ func (ch *ChannelImpl) Readloop(lst MessageListener) error {
 	if !atomic.CompareAndSwapInt32(&ch.state, 0, 1) {
 		return fmt.Errorf("channel has started")
 	}
+	log := logger.WithFields(logger.Fields{
+		"struct": "ChannelImpl",
+		"func":   "Readloop",
+		"id":     ch.id,
+	})
 	for {
 		_ = ch.SetReadDeadline(time.Now().Add(ch.readwait))
 
 		frame, err := ch.ReadFrame()
 		if err != nil {
+			log.Info(err)
 			return err
 		}
 		if frame.GetOpCode() == OpClose {
 			return errors.New("remote side close the channel")
 		}
 		if frame.GetOpCode() == OpPing {
-			logger.WithFields(logger.Fields{
-				"struct": "ChannelImpl",
-				"func":   "Readloop",
-				"id":     ch.id,
-			}).Trace("recv a ping; resp with a pong")
+			log.Trace("recv a ping; resp with a pong")
 
 			_ = ch.WriteFrame(OpPong, nil)
 			_ = ch.Flush()

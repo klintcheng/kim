@@ -86,7 +86,7 @@ func (c *Client) Connect(addr string) error {
 		go func() {
 			err := c.heartbealoop(conn)
 			if err != nil {
-				logger.Error("heartbealoop stopped ", err)
+				logger.Error("heartbealoop stopped -- ", err)
 			}
 		}()
 	}

@@ -15,10 +15,14 @@ import (
 func Test_Usertalk(t *testing.T) {
 	cli1, err := dialer.Login(wsurl, "test1")
 	assert.Nil(t, err)
-
+	if err != nil {
+		return
+	}
 	cli2, err := dialer.Login(wsurl, "test2")
 	assert.Nil(t, err)
-
+	if err != nil {
+		return
+	}
 	p := pkt.New(wire.CommandChatUserTalk, pkt.WithDest("test2"))
 	p.WriteBody(&pkt.MessageReq{
 		Type: 1,

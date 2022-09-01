@@ -19,7 +19,9 @@ func Test_offline(t *testing.T) {
 	src := fmt.Sprintf("u%d", time.Now().Unix())
 	cli, err := dialer.Login(wsurl, src)
 	assert.Nil(t, err)
-
+	if err != nil {
+		return
+	}
 	dest := fmt.Sprintf("u%d", time.Now().Unix()+1)
 	count := 10
 	for i := 0; i < count; i++ {
