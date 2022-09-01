@@ -98,11 +98,7 @@ func (c *Client) Send(payload []byte) error {
 	}
 	c.Lock()
 	defer c.Unlock()
-	err := c.conn.SetWriteDeadline(time.Now().Add(c.options.WriteWait))
-	if err != nil {
-		return err
-	}
-	err = c.conn.WriteFrame(kim.OpBinary, payload)
+	err := c.conn.WriteFrame(kim.OpBinary, payload)
 	if err != nil {
 		return err
 	}
