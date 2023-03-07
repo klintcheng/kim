@@ -132,7 +132,7 @@ func (c *Client) Read() (kim.Frame, error) {
 	if c.conn == nil {
 		return nil, errors.New("connection is nil")
 	}
-	if c.options.Heartbeat > 0 {
+	if c.options.ReadWait > 0 {
 		_ = c.conn.SetReadDeadline(time.Now().Add(c.options.ReadWait))
 	}
 	frame, err := ws.ReadFrame(c.conn)
