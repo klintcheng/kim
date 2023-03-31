@@ -113,27 +113,40 @@ func (ch *ChannelImpl) SetReadWait(readwait time.Duration) {
 	ch.writeWait = readwait
 }
 
+// Declare a function called Readloop that belongs to the ChannelImpl struct.
+// This function takes in a MessageListener as a parameter and returns an error (if there is one).
 func (ch *ChannelImpl) Readloop(lst MessageListener) error {
+	// Perform an atomic compare-and-swap operation on ch.state. If the current value is 0, set it to 1.
+	// If it's already 1, return an error indicating that the channel has already started.
 	if !atomic.CompareAndSwapInt32(&ch.state, 0, 1) {
 		return fmt.Errorf("channel has started")
 	}
+
+	// Create a new logger object with some fields filled out.
 	log := logger.WithFields(logger.Fields{
 		"struct": "ChannelImpl",
 		"func":   "Readloop",
 		"id":     ch.id,
 	})
+
+	// Start an infinite loop.
 	for {
+		// Set a read deadline for the channel.
 		_ = ch.SetReadDeadline(time.Now().Add(ch.readwait))
 
+		// Attempt to read a frame from the channel.
 		frame, err := ch.ReadFrame()
 		if err != nil {
+			// If reading the frame failed, log the error and return it.
 			log.Info(err)
 			return err
 		}
 		if frame.GetOpCode() == OpClose {
-			return errors.New("remote side close the channel")
+			// If the received frame has an OpCode of OpClose, return an error indicating that the remote side closed the channel.
+			return errors.New("remote side closed the channel")
 		}
 		if frame.GetOpCode() == OpPing {
+			// If the received frame has an OpCode of OpPing, log that we received a ping and respond with a pong.
 			log.Trace("recv a ping; resp with a pong")
 
 			_ = ch.WriteFrame(OpPong, nil)
@@ -142,12 +155,16 @@ func (ch *ChannelImpl) Readloop(lst MessageListener) error {
 		}
 		payload := frame.GetPayload()
 		if len(payload) == 0 {
+			// If the payload is empty, skip to the next iteration of the loop.
 			continue
 		}
 		err = ch.gpool.Submit(func() {
+			// Submit a new task to the gpool (which is an instance of a goroutine pool).
+			// This task calls lst.Receive with the channel and payload as parameters.
 			lst.Receive(ch, payload)
 		})
 		if err != nil {
+			// If submitting the task to the gpool failed, return an error.
 			return err
 		}
 	}
