@@ -148,14 +148,14 @@ func (h *ServiceHandler) MessageAck(c iris.Context) {
 		return
 	}
 	// save in redis
-	err := setMesssageAck(h.Cache, req.Account, req.MessageId)
+	err := setMessageAck(h.Cache, req.Account, req.MessageId)
 	if err != nil {
 		c.StopWithError(iris.StatusInternalServerError, err)
 		return
 	}
 }
 
-func setMesssageAck(cache *redis.Client, account string, msgId int64) error {
+func setMessageAck(cache *redis.Client, account string, msgId int64) error {
 	if msgId == 0 {
 		return nil
 	}
@@ -183,7 +183,7 @@ func (h *ServiceHandler) GetOfflineMessageIndex(c iris.Context) {
 		c.StopWithError(iris.StatusInternalServerError, err)
 		return
 	}
-	err = setMesssageAck(h.Cache, req.Account, msgId)
+	err = setMessageAck(h.Cache, req.Account, msgId)
 	if err != nil {
 		c.StopWithError(iris.StatusInternalServerError, err)
 		return

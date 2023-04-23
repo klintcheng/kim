@@ -77,9 +77,9 @@ func (c *Client) Connect(addr string) error {
 
 	if c.options.Heartbeat > 0 {
 		go func() {
-			err := c.heartbealoop()
+			err := c.heartbeatloop()
 			if err != nil {
-				logger.WithField("module", "tcp.client").Warn("heartbealoop stopped - ", err)
+				logger.WithField("module", "tcp.client").Warn("heartbeatloop stopped - ", err)
 			}
 		}()
 	}
@@ -137,7 +137,7 @@ func (c *Client) Read() (kim.Frame, error) {
 	return frame, nil
 }
 
-func (c *Client) heartbealoop() error {
+func (c *Client) heartbeatloop() error {
 	tick := time.NewTicker(c.options.Heartbeat)
 	for range tick.C {
 		// 发送一个ping的心跳包给服务端
