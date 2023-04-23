@@ -32,6 +32,7 @@ func (ch *ChannelsImpl) Add(channel Channel) {
 		logger.WithFields(logger.Fields{
 			"module": "ChannelsImpl",
 		}).Error("channel id is required")
+		return
 	}
 
 	ch.channels.Store(channel.ID(), channel)
@@ -48,6 +49,7 @@ func (ch *ChannelsImpl) Get(id string) (Channel, bool) {
 		logger.WithFields(logger.Fields{
 			"module": "ChannelsImpl",
 		}).Error("channel id is required")
+		return nil, false
 	}
 
 	val, ok := ch.channels.Load(id)

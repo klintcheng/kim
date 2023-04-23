@@ -58,7 +58,12 @@ go run main.go server
 go run main.go royal
 ```
 
+或者，通过docker-compose启动：
+
+```
+docker-compose -f "docker-compose-kim.yml" up -d --build
+```
+
 访问Consul，可以查看服务启动状态：
 
 > http://localhost:8500/ui
-

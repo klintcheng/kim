@@ -8,8 +8,6 @@ services:
       - kimnet
     ports:
       - "8100:8100"
-    volumes:
-      - ~/data/kim/:/data/
     environment:
       KIM_CONSULURL: consul:8500
       KIM_LOGLEVEL: INFO
@@ -21,8 +19,6 @@ services:
       - kimnet
     ports:
       - "8080:8080"
-    volumes:
-      - ~/data/kim/:/data/
     environment:
       KIM_PUBLICADDRESS: royal
       KIM_CONSULURL: consul:8500
@@ -39,14 +35,12 @@ services:
     ports:
       - "8000:8000"
       - "8001:8001"
-    volumes:
-      - ~/data/kim/:/data/
     environment:
       KIM_PUBLICADDRESS: gateway
       KIM_CONSULURL: consul:8500
       KIM_LOGLEVEL: DEBUG
       KIM_TAGS: IDC:SH_ALI
-      KIM_DOMAIN: ws://119.3.4.216:8000
+      KIM_DOMAIN: ws://localhost:8000
   server:
     image: docker.io/dockerklint/kim_server:v1.4
     container_name: chat
@@ -56,8 +50,6 @@ services:
     ports:
       - "8005:8005"
       - "8006:8006"
-    volumes:
-      - ~/data/kim/:/data/
     environment:
       KIM_PUBLICADDRESS: server
       KIM_CONSULURL: consul:8500

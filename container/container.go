@@ -331,6 +331,7 @@ func readLoop(cli kim.Client) error {
 	for {
 		frame, err := cli.Read()
 		if err != nil {
+			log.Trace(err)
 			return err
 		}
 		if frame.GetOpCode() != kim.OpBinary {

@@ -90,6 +90,7 @@ func (h *Handler) Accept(conn kim.Conn, timeout time.Duration) (string, kim.Meta
 	// 7. 把login.转发给Login服务
 	err = container.Forward(wire.SNLogin, req)
 	if err != nil {
+		log.Errorf("container.Forward :%v", err)
 		return "", nil, err
 	}
 	return id, kim.Meta{
