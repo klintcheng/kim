@@ -110,7 +110,7 @@ func (ch *ChannelImpl) SetReadWait(readwait time.Duration) {
 	if readwait == 0 {
 		return
 	}
-	ch.writeWait = readwait
+	ch.readwait = readwait
 }
 
 // Declare a function called Readloop that belongs to the ChannelImpl struct.
