@@ -17,7 +17,7 @@ import (
 
 // ClientOptions ClientOptions
 type ClientOptions struct {
-	Heartbeat time.Duration //登录超时
+	Heartbeat time.Duration //心跳超时
 	ReadWait  time.Duration //读超时
 	WriteWait time.Duration //写超时
 }
